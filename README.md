@@ -19,6 +19,7 @@ Each pattern solves one common job, such as encrypting data at rest, signing API
 | --- | --- | --- | --- | --- |
 | [KX-01](patterns/kx-01-hybrid-tls/) | Hybrid post-quantum TLS 1.3 | stdlib | rustls + aws-lc-rs | Bouncy Castle JSSE |
 | [KX-03](patterns/kx-03-hpke-hybrid-envelope/) | Hybrid envelope encryption with HPKE | stdlib | hpke-rs + libcrux | Bouncy Castle |
+| [SESS-02](patterns/sess-02-mldsa-signed-tokens/) | Signed bearer tokens (JWS) with ML-DSA | stdlib | RustCrypto ml-dsa | Bouncy Castle + Jackson |
 | [SIG-01](patterns/sig-01-mldsa-api-signing/) | Signing API requests with ML-DSA | stdlib | RustCrypto ml-dsa | Bouncy Castle |
 | [SYM-01](patterns/sym-01-aead-at-rest/) | Authenticated encryption at rest | stdlib | aws-lc-rs | JDK |
 

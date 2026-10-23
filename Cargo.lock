@@ -1216,6 +1216,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "sess-02-mldsa-signed-tokens"
+version = "0.1.0"
+dependencies = [
+ "base64",
+ "getrandom 0.4.3",
+ "hex",
+ "ml-dsa",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "shake"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

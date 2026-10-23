@@ -1,0 +1,281 @@
+rules:
+  - id: pqc-kx-rsa-encrypt
+    languages: [go]
+    severity: ERROR
+    message: >-
+      RSA encryption is broken by Shor's algorithm, and anything encrypted with it
+      today can be decrypted later. Use hybrid HPKE (ML-KEM-768 + X25519) instead.
+    metadata:
+      pattern: KX-03
+      docs: patterns/kx-03-hpke-hybrid-envelope/README.md
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      category: security
+    pattern-either:
+      - pattern: rsa.EncryptOAEP(...)
+      - pattern: rsa.EncryptPKCS1v15(...)
+      - pattern: rsa.DecryptOAEP(...)
+      - pattern: rsa.DecryptPKCS1v15(...)
+
+  - id: pqc-kx-classical-ecdh
+    languages: [go]
+    severity: WARNING
+    message: >-
+      Raw ECDH or X25519 key agreement is not quantum-safe on its own. For encrypting
+      to a public key use hybrid HPKE (crypto/hpke MLKEM768X25519); for transport use
+      TLS 1.3 with X25519MLKEM768. Ignore this if the result feeds a hybrid combiner.
+    metadata:
+      pattern: KX-03
+      docs: patterns/kx-03-hpke-hybrid-envelope/README.md
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      category: security
+    pattern-either:
+      - pattern: ($PRIV).ECDH(...)
+      - pattern: curve25519.X25519(...)
+      - pattern: curve25519.ScalarMult(...)
+      - pattern: hpke.DHKEM(...)
+
+  - id: pqc-sig-classical-keygen
+    languages: [go]
+    severity: WARNING
+    message: >-
+      New RSA, ECDSA, Ed25519 or DSA signing keys will be forgeable by a quantum
+      computer. Use ML-DSA-65 (crypto/mldsa) for new signing keys. TLS certificate
+      keys can stay classical for now (see PKI-01).
+    metadata:
+      pattern: SIG-01
+      docs: patterns/sig-01-mldsa-api-signing/README.md
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      category: security
+    paths:
+      exclude: ["*_test.go"]
+    pattern-either:
+      - pattern: rsa.GenerateKey(...)
+      - pattern: rsa.GenerateMultiPrimeKey(...)
+      - pattern: ecdsa.GenerateKey(...)
+      - pattern: ed25519.GenerateKey(...)
+      - pattern: dsa.GenerateKey(...)
+
+  - id: pqc-sig-mldsa-no-context
+    languages: [go]
+    severity: WARNING
+    message: >-
+      ML-DSA signature without a context string. Pass &mldsa.Options{Context: "..."}
+      naming the purpose, so signatures cannot be replayed into another protocol
+      that uses the same key.
+    metadata:
+      pattern: SIG-01
+      docs: patterns/sig-01-mldsa-api-signing/README.md
+      cwe: "CWE-347: Improper Verification of Cryptographic Signature"
+      category: security
+    pattern-either:
+      - pattern: mldsa.Verify($PK, $MSG, $SIG, nil)
+      - pattern: mldsa.Verify($PK, $MSG, $SIG, &mldsa.Options{})
+      - pattern: '($SK : *mldsa.PrivateKey).Sign($R, $MSG, nil)'
+      - pattern: '($SK : *mldsa.PrivateKey).Sign($R, $MSG, &mldsa.Options{})'
+      - pattern: '($SK : *mldsa.PrivateKey).SignDeterministic($MSG, nil)'
+      # Semgrep does not infer types from :=, so also match keys made in scope.
+      - patterns:
+          - pattern-either:
+              - pattern: $SK.Sign($R, $MSG, nil)
+              - pattern: $SK.Sign($R, $MSG, &mldsa.Options{})
+              - pattern: $SK.SignDeterministic($MSG, nil)
+          - pattern-either:
+              - pattern-inside: |
+                  $SK, $E := mldsa.GenerateKey(...)
+                  ...
+              - pattern-inside: |
+                  $SK, $E := mldsa.NewPrivateKey(...)
+                  ...
+              - pattern-inside: |
+                  $SK, $E = mldsa.GenerateKey(...)
+                  ...
+              - pattern-inside: |
+                  $SK, $E = mldsa.NewPrivateKey(...)
+                  ...
+
+  - id: pqc-sym-unauthenticated-mode
+    languages: [go]
+    severity: ERROR
+    message: >-
+      Unauthenticated cipher mode: ciphertexts can be modified without detection.
+      Use AES-256-GCM with associated data (pattern SYM-01).
+    metadata:
+      pattern: SYM-01
+      docs: patterns/sym-01-aead-at-rest/README.md
+      cwe: "CWE-353: Missing Support for Integrity Check"
+      category: security
+    pattern-either:
+      - pattern: cipher.NewCBCEncrypter(...)
+      - pattern: cipher.NewCBCDecrypter(...)
+      - pattern: cipher.NewCFBEncrypter(...)
+      - pattern: cipher.NewCFBDecrypter(...)
+      - pattern: cipher.NewOFB(...)
+      - pattern: cipher.NewCTR(...)
+
+  - id: pqc-sym-aes-128
+    languages: [go]
+    severity: WARNING
+    message: >-
+      AES-128 key. Grover's algorithm leaves it with about 64 bits of security
+      against a large quantum computer. Use 32-byte (AES-256) keys.
+    metadata:
+      pattern: SYM-01
+      docs: patterns/sym-01-aead-at-rest/README.md
+      cwe: "CWE-326: Inadequate Encryption Strength"
+      category: security
+    pattern-either:
+      - patterns:
+          - pattern: aes.NewCipher($KEY)
+          - pattern-either:
+              - pattern-inside: |
+                  $KEY := make([]byte, 16)
+                  ...
+              - pattern-inside: |
+                  var $KEY [16]byte
+                  ...
+      - pattern: aes.NewCipher(make([]byte, 16))
+      - pattern: hpke.AES128GCM()
+
+  - id: pqc-sym-static-nonce
+    languages: [go]
+    severity: ERROR
+    message: >-
+      AEAD nonce is all zeros or a fixed value. Reusing a GCM nonce with the same key
+      leaks the authentication key and plaintext. Use a fresh random nonce per
+      message, or cipher.NewGCMWithRandomNonce.
+    metadata:
+      pattern: SYM-01
+      docs: patterns/sym-01-aead-at-rest/README.md
+      cwe: "CWE-323: Reusing a Nonce, Key Pair in Encryption"
+      category: security
+    pattern-either:
+      # Untyped, because Semgrep does not infer cipher.AEAD from gcm, _ := cipher.NewGCM(...).
+      # Seal(dst, nonce, plaintext, additionalData) is the cipher.AEAD shape.
+      - pattern: $A.Seal($DST, make([]byte, $N), $PT, $AD)
+      - pattern: $A.Seal($DST, []byte{...}, $PT, $AD)
+      - pattern: $A.Seal($DST, []byte("..."), $PT, $AD)
+      - patterns:
+          - pattern: $A.Seal($DST, $NONCE[:], $PT, $AD)
+          - pattern-inside: |
+              var $NONCE [$N]byte
+              ...
+          - pattern-not-inside: |
+              var $NONCE [$N]byte
+              ...
+              $RAND.Read($NONCE[:])
+              ...
+          - pattern-not-inside: |
+              var $NONCE [$N]byte
+              ...
+              $X, $ERR := $RAND.Read($NONCE[:])
+              ...
+          - pattern-not-inside: |
+              var $NONCE [$N]byte
+              ...
+              $X, $ERR := io.ReadFull($R, $NONCE[:])
+              ...
+      - patterns:
+          - pattern: $A.Seal($DST, $NONCE, $PT, $AD)
+          - pattern-inside: |
+              $NONCE := make([]byte, $N)
+              ...
+          # Not flagged once the nonce is filled from a random source.
+          - pattern-not-inside: |
+              $NONCE := make([]byte, $N)
+              ...
+              $RAND.Read($NONCE)
+              ...
+          - pattern-not-inside: |
+              $NONCE := make([]byte, $N)
+              ...
+              $X, $ERR := $RAND.Read($NONCE)
+              ...
+          - pattern-not-inside: |
+              $NONCE := make([]byte, $N)
+              ...
+              if $X, $ERR := $RAND.Read($NONCE); $COND { ... }
+              ...
+          - pattern-not-inside: |
+              $NONCE := make([]byte, $N)
+              ...
+              $X, $ERR := io.ReadFull($R, $NONCE)
+              ...
+          - pattern-not-inside: |
+              $NONCE := make([]byte, $N)
+              ...
+              if $X, $ERR := io.ReadFull($R, $NONCE); $COND { ... }
+              ...
+
+  - id: pqc-tls-classical-groups
+    languages: [go]
+    severity: ERROR
+    message: >-
+      CurvePreferences lists no post-quantum hybrid group, which turns off Go's
+      default X25519MLKEM768 key exchange. Put tls.X25519MLKEM768 first (pattern KX-01).
+    metadata:
+      pattern: KX-01
+      docs: patterns/kx-01-hybrid-tls/README.md
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      category: security
+    patterns:
+      - pattern-either:
+          - pattern: "tls.Config{..., CurvePreferences: []tls.CurveID{...}, ...}"
+          - pattern: "$C.CurvePreferences = []tls.CurveID{...}"
+      - pattern-not: "tls.Config{..., CurvePreferences: []tls.CurveID{..., tls.X25519MLKEM768, ...}, ...}"
+      - pattern-not: "tls.Config{..., CurvePreferences: []tls.CurveID{..., tls.SecP256r1MLKEM768, ...}, ...}"
+      - pattern-not: "tls.Config{..., CurvePreferences: []tls.CurveID{..., tls.SecP384r1MLKEM1024, ...}, ...}"
+      - pattern-not: "$C.CurvePreferences = []tls.CurveID{..., tls.X25519MLKEM768, ...}"
+      - pattern-not: "$C.CurvePreferences = []tls.CurveID{..., tls.SecP256r1MLKEM768, ...}"
+      - pattern-not: "$C.CurvePreferences = []tls.CurveID{..., tls.SecP384r1MLKEM1024, ...}"
+
+  - id: pqc-tls-min-version
+    languages: [go]
+    severity: WARNING
+    message: >-
+      TLS versions below 1.3 cannot negotiate hybrid post-quantum key exchange. Set
+      MinVersion: tls.VersionTLS13 where you control both ends (pattern KX-01).
+    metadata:
+      pattern: KX-01
+      docs: patterns/kx-01-hybrid-tls/README.md
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      category: security
+    pattern-either:
+      - pattern: "tls.Config{..., MinVersion: tls.VersionTLS10, ...}"
+      - pattern: "tls.Config{..., MinVersion: tls.VersionTLS11, ...}"
+      - pattern: "tls.Config{..., MinVersion: tls.VersionTLS12, ...}"
+      - pattern: "tls.Config{..., MaxVersion: tls.VersionTLS12, ...}"
+      - pattern: "$C.MinVersion = tls.VersionTLS10"
+      - pattern: "$C.MinVersion = tls.VersionTLS11"
+      - pattern: "$C.MinVersion = tls.VersionTLS12"
+      - pattern: "$C.MaxVersion = tls.VersionTLS12"
+
+  - id: pqc-tls-no-verify
+    languages: [go]
+    severity: ERROR
+    message: >-
+      Certificate verification is disabled. A strong key exchange does not help if
+      the peer is not authenticated.
+    metadata:
+      pattern: KX-01
+      docs: patterns/kx-01-hybrid-tls/README.md
+      cwe: "CWE-295: Improper Certificate Validation"
+      category: security
+    pattern-either:
+      - pattern: "tls.Config{..., InsecureSkipVerify: true, ...}"
+      - pattern: "$C.InsecureSkipVerify = true"
+
+  - id: pqc-hash-weak
+    languages: [go]
+    severity: ERROR
+    message: >-
+      MD5 and SHA-1 are broken for collision resistance. Use SHA-256 or above
+      (SHA-384 for CNSA 2.0), or SHA-3.
+    metadata:
+      pattern: HASH-01
+      cwe: "CWE-328: Use of Weak Hash"
+      category: security
+    pattern-either:
+      - pattern: md5.New()
+      - pattern: md5.Sum(...)
+      - pattern: sha1.New()
+      - pattern: sha1.Sum(...)

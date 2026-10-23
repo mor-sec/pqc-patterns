@@ -47,12 +47,12 @@ Each implementation's tests cover a round trip, every single-bit flip, wrong ass
 
 | Anti-pattern | Why it is wrong | Checker rule |
 | --- | --- | --- |
-| AES-128 keys | Leaves only about 64 bits of security against a large quantum computer | `pqc.sym.aes-128` (planned) |
-| ECB or CBC without a MAC | No integrity, and ECB leaks patterns | `pqc.sym.unauthenticated-mode` (planned) |
-| Fixed, counter-from-zero or reused nonces | One GCM nonce reuse leaks the authentication key and plaintext XOR | `pqc.sym.static-nonce` (planned) |
+| AES-128 keys | Leaves only about 64 bits of security against a large quantum computer | [`pqc-sym-aes-128`](../../rules/) |
+| ECB or CBC without a MAC | No integrity, and ECB leaks patterns | [`pqc-sym-unauthenticated-mode`](../../rules/) |
+| Fixed, counter-from-zero or reused nonces | One GCM nonce reuse leaks the authentication key and plaintext XOR | [`pqc-sym-static-nonce`](../../rules/) |
 | No associated data | Ciphertexts can be swapped between rows | Review item |
 | Returning different errors for "bad tag" and "unknown key" | Gives attackers an oracle | Review item |
-| Hardcoded keys in source or config | Keys belong in a KMS or HSM (KEY-02) | `pqc.key.hardcoded` (planned) |
+| Hardcoded keys in source or config | Keys belong in a KMS or HSM (KEY-02) | `pqc-key-hardcoded` (planned) |
 
 ## Threat notes
 

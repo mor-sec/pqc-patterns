@@ -51,10 +51,10 @@ Tests cover round trips, tampering with each signed field, a request signed for 
 
 | Anti-pattern | Why it is wrong | Checker rule |
 | --- | --- | --- |
-| RSA, ECDSA or Ed25519 for new long-lived signing keys | Broken by Shor's algorithm | `pqc.sig.classical-keygen` (planned) |
+| RSA, ECDSA or Ed25519 for new long-lived signing keys | Broken by Shor's algorithm | [`pqc-sig-classical-keygen`](../../rules/) |
 | Signing only the body | Path, method or timestamp can be swapped | Review item |
 | Concatenating fields without lengths or a delimiter that cannot appear in fields | `/a` + `bc` equals `/ab` + `c` | Review item |
-| No context string, or one shared across purposes | Signatures can be replayed across protocols | `pqc.sig.mldsa-no-context` (planned) |
+| No context string, or one shared across purposes | Signatures can be replayed across protocols | [`pqc-sig-mldsa-no-context`](../../rules/) |
 | No timestamp or replay window | Captured requests can be replayed forever | Review item |
 | Using HashML-DSA (pre-hash) without a need for it | Adds an option CNSA 2.0 disallows and most verifiers do not need | Review item |
 

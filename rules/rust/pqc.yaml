@@ -1,0 +1,218 @@
+rules:
+  - id: pqc-kx-rsa-encrypt
+    languages: [rust]
+    severity: ERROR
+    message: >-
+      RSA encryption is broken by Shor's algorithm, and anything encrypted with it
+      today can be decrypted later. Use hybrid HPKE (ML-KEM-768 + X25519) instead.
+    metadata:
+      pattern: KX-03
+      docs: patterns/kx-03-hpke-hybrid-envelope/README.md
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      category: security
+    pattern-either:
+      - pattern: Oaep::new::<$H>()
+      - pattern: rsa::Oaep::new::<$H>()
+      - pattern: Oaep::new()
+      - pattern: Pkcs1v15Encrypt
+      - pattern: rsa::Pkcs1v15Encrypt
+
+  - id: pqc-kx-classical-ecdh
+    languages: [rust]
+    severity: WARNING
+    message: >-
+      Raw ECDH or X25519 key agreement is not quantum-safe on its own. For encrypting
+      to a public key use hybrid HPKE (X-Wing); for transport use rustls with
+      X25519MLKEM768. Ignore this if the result feeds a hybrid combiner.
+    metadata:
+      pattern: KX-03
+      docs: patterns/kx-03-hpke-hybrid-envelope/README.md
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      category: security
+    pattern-either:
+      - pattern: $SECRET.diffie_hellman($PUB)
+      - pattern: agreement::agree_ephemeral(...)
+      - pattern: aws_lc_rs::agreement::agree_ephemeral(...)
+      - pattern: KemAlgorithm::DhKem25519
+      - pattern: KemAlgorithm::DhKemP256
+      - pattern: KemAlgorithm::DhKemP384
+
+  - id: pqc-sig-classical-keygen
+    languages: [rust]
+    severity: WARNING
+    message: >-
+      New RSA, ECDSA or Ed25519 signing keys will be forgeable by a quantum computer.
+      Use ML-DSA-65 for new signing keys. TLS certificate keys can stay classical for
+      now (see PKI-01).
+    metadata:
+      pattern: SIG-01
+      docs: patterns/sig-01-mldsa-api-signing/README.md
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      category: security
+    paths:
+      exclude: ["**/tests/**", "*_test.rs"]
+    pattern-either:
+      - pattern: RsaPrivateKey::new(...)
+      - pattern: rsa::RsaPrivateKey::new(...)
+      - pattern: RsaKeyPair::generate(...)
+      - pattern: EcdsaKeyPair::generate_pkcs8(...)
+      - pattern: Ed25519KeyPair::generate_pkcs8(...)
+      - pattern: ed25519_dalek::SigningKey::generate(...)
+      - pattern: p256::ecdsa::SigningKey::random(...)
+      - pattern: p384::ecdsa::SigningKey::random(...)
+
+  - id: pqc-sig-mldsa-no-context
+    languages: [rust]
+    severity: WARNING
+    message: >-
+      ML-DSA signature with an empty context string. Pass a context naming the
+      purpose, so signatures cannot be replayed into another protocol that uses the
+      same key.
+    metadata:
+      pattern: SIG-01
+      docs: patterns/sig-01-mldsa-api-signing/README.md
+      cwe: "CWE-347: Improper Verification of Cryptographic Signature"
+      category: security
+    pattern-either:
+      - pattern: $SK.sign_deterministic($M, b"")
+      - pattern: $SK.sign_deterministic($M, &[])
+      - pattern: $SK.sign_randomized($M, b"", $RNG)
+      - pattern: $SK.sign_randomized($M, &[], $RNG)
+      - pattern: $VK.verify_with_context($M, b"", $SIG)
+      - pattern: $VK.verify_with_context($M, &[], $SIG)
+
+  - id: pqc-sym-unauthenticated-mode
+    languages: [rust]
+    severity: ERROR
+    message: >-
+      Unauthenticated cipher mode: ciphertexts can be modified without detection.
+      Use AES-256-GCM with associated data (pattern SYM-01).
+    metadata:
+      pattern: SYM-01
+      docs: patterns/sym-01-aead-at-rest/README.md
+      cwe: "CWE-353: Missing Support for Integrity Check"
+      category: security
+    pattern-either:
+      - pattern: cbc::Encryptor::<$C>::new(...)
+      - pattern: cbc::Decryptor::<$C>::new(...)
+      - pattern: ecb::Encryptor::<$C>::new(...)
+      - pattern: ecb::Decryptor::<$C>::new(...)
+      - pattern: EncryptingKey::cbc_pkcs7(...)
+      - pattern: EncryptingKey::ctr(...)
+      - pattern: DecryptingKey::cbc_pkcs7(...)
+      - pattern: DecryptingKey::ctr(...)
+
+  - id: pqc-sym-aes-128
+    languages: [rust]
+    severity: WARNING
+    message: >-
+      AES-128. Grover's algorithm leaves it with about 64 bits of security against a
+      large quantum computer. Use AES-256-GCM.
+    metadata:
+      pattern: SYM-01
+      docs: patterns/sym-01-aead-at-rest/README.md
+      cwe: "CWE-326: Inadequate Encryption Strength"
+      category: security
+    pattern-either:
+      - pattern: AES_128_GCM
+      - pattern: aead::AES_128_GCM
+      - pattern: Aes128Gcm::new(...)
+      - pattern: AeadAlgorithm::Aes128Gcm
+
+  - id: pqc-sym-static-nonce
+    languages: [rust]
+    severity: ERROR
+    message: >-
+      AEAD nonce is a constant. Reusing a GCM nonce with the same key leaks the
+      authentication key and plaintext. Generate a fresh random nonce per message.
+    metadata:
+      pattern: SYM-01
+      docs: patterns/sym-01-aead-at-rest/README.md
+      cwe: "CWE-323: Reusing a Nonce, Key Pair in Encryption"
+      category: security
+    pattern-either:
+      - pattern: aws_lc_rs::aead::Nonce::assume_unique_for_key([$B; $N])
+      - pattern: ring::aead::Nonce::assume_unique_for_key([$B; $N])
+      - pattern: Nonce::assume_unique_for_key([$B; $N])
+      - pattern: Nonce::from([$B; $N])
+      - pattern: Nonce::from_slice(&[$B; $N])
+      - pattern: Nonce::from_slice(b"...")
+      - pattern: Nonce::default()
+      - patterns:
+          - pattern-either:
+              - pattern: Nonce::assume_unique_for_key($V)
+              - pattern: aws_lc_rs::aead::Nonce::assume_unique_for_key($V)
+              - pattern: ring::aead::Nonce::assume_unique_for_key($V)
+          - pattern-inside: |
+              let $V = [$B; $N];
+              ...
+          # Not flagged once anything fills the array through &mut.
+          - pattern-not-inside: |
+              let mut $V = [$B; $N];
+              ...
+              <... &mut $V ...>;
+              ...
+
+  - id: pqc-tls-classical-groups
+    languages: [rust]
+    severity: ERROR
+    message: >-
+      The rustls provider's key exchange groups include no post-quantum hybrid
+      group. Put kx_group::X25519MLKEM768 first (pattern KX-01).
+    metadata:
+      pattern: KX-01
+      docs: patterns/kx-01-hybrid-tls/README.md
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      category: security
+    # A regex, because Semgrep cannot yet match struct literals with base expressions.
+    pattern-regex: kx_groups\s*:\s*vec!\[(?![^\]]*MLKEM)[^\]]*\]
+
+  - id: pqc-tls-min-version
+    languages: [rust]
+    severity: WARNING
+    message: >-
+      TLS 1.2 cannot negotiate hybrid post-quantum key exchange. Restrict to
+      rustls::version::TLS13 where you control both ends (pattern KX-01).
+    metadata:
+      pattern: KX-01
+      docs: patterns/kx-01-hybrid-tls/README.md
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      category: security
+    pattern-either:
+      - pattern: rustls::version::TLS12
+      - pattern: version::TLS12
+
+  - id: pqc-tls-no-verify
+    languages: [rust]
+    severity: ERROR
+    message: >-
+      Certificate verification is replaced or disabled. A strong key exchange does
+      not help if the peer is not authenticated.
+    metadata:
+      pattern: KX-01
+      docs: patterns/kx-01-hybrid-tls/README.md
+      cwe: "CWE-295: Improper Certificate Validation"
+      category: security
+    pattern-either:
+      - pattern: $C.dangerous().set_certificate_verifier(...)
+      - pattern: $B.dangerous().with_custom_certificate_verifier(...)
+      - pattern: $B.danger_accept_invalid_certs(true)
+      - pattern: $B.danger_accept_invalid_hostnames(true)
+
+  - id: pqc-hash-weak
+    languages: [rust]
+    severity: ERROR
+    message: >-
+      MD5 and SHA-1 are broken for collision resistance. Use SHA-256 or above
+      (SHA-384 for CNSA 2.0), or SHA3-256.
+    metadata:
+      pattern: HASH-01
+      cwe: "CWE-328: Use of Weak Hash"
+      category: security
+    pattern-either:
+      - pattern: md5::compute(...)
+      - pattern: Md5::new()
+      - pattern: Md5::digest(...)
+      - pattern: Sha1::new()
+      - pattern: Sha1::digest(...)
+      - pattern: digest::SHA1_FOR_LEGACY_USE_ONLY

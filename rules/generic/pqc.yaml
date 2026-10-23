@@ -1,0 +1,17 @@
+rules:
+  - id: pqc-tls-godebug-downgrade
+    languages: [generic]
+    severity: ERROR
+    message: >-
+      This setting turns off hybrid post-quantum TLS key exchange for every connection
+      in the process. Remove it, or fix the specific peer that cannot handle a larger
+      ClientHello (pattern KX-01).
+    metadata:
+      pattern: KX-01
+      docs: patterns/kx-01-hybrid-tls/README.md
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      category: security
+    pattern-either:
+      - pattern-regex: \btls(secp)?mlkem=0\b
+      - pattern-regex: \bx25519kyber768draft00=0\b
+      - pattern-regex: jdk\.tls\.namedGroups\s*[=:]\s*"?(?![^"\n]*MLKEM)[A-Za-z0-9_,\s]+"?

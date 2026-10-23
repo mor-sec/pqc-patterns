@@ -1,0 +1,14 @@
+# Semgrep's default exclusions (a .semgrepignore file replaces them).
+:include .gitignore
+.git/
+node_modules/
+vendor/
+target/
+test/
+tests/
+*_test.go
+*.min.js
+
+# Docs and rule fixtures show anti-patterns on purpose.
+*.md
+rules/

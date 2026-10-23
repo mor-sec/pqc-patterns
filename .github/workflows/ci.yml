@@ -57,3 +57,16 @@ jobs:
           java-version: ${{ matrix.java }}
           cache: maven
       - run: mvn -B -ntp test
+
+  semgrep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - run: pip install semgrep==1.182.1
+      - name: Rule unit tests
+        run: semgrep --test --metrics=off rules/
+      - name: Pattern code passes its own checker
+        run: semgrep scan --config rules/ --error --metrics=off patterns/

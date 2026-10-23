@@ -60,10 +60,10 @@ Tests run real handshakes and check that:
 
 | Anti-pattern | Why it is wrong | Checker rule |
 | --- | --- | --- |
-| `CurvePreferences` or `namedGroups` listing only classical curves | Disables post-quantum key exchange | `pqc.tls.classical-groups` (planned) |
-| Allowing TLS 1.2 or lower | No hybrid groups, and weaker handshakes | `pqc.tls.min-version` (planned) |
-| `GODEBUG=tlsmlkem=0`, or the `jdk.tls.namedGroups` property with classical groups only | Silent global downgrade | `pqc.tls.godebug-downgrade` (planned) |
-| `InsecureSkipVerify`, trust-all managers, hostname verification off | Key exchange strength is irrelevant if the peer is not authenticated | `pqc.tls.no-verify` (planned) |
+| `CurvePreferences` or `namedGroups` listing only classical curves | Disables post-quantum key exchange | [`pqc-tls-classical-groups`](../../rules/) |
+| Allowing TLS 1.2 or lower | No hybrid groups, and weaker handshakes | [`pqc-tls-min-version`](../../rules/) |
+| `GODEBUG=tlsmlkem=0`, or the `jdk.tls.namedGroups` property with classical groups only | Silent global downgrade | [`pqc-tls-godebug-downgrade`](../../rules/) |
+| `InsecureSkipVerify`, trust-all managers, hostname verification off | Key exchange strength is irrelevant if the peer is not authenticated | [`pqc-tls-no-verify`](../../rules/) |
 | Pure `MLKEM768` or `MLKEM1024` groups without a classical half | Not recommended outside CNSA 2.0 contexts yet | Review item |
 
 ## Threat notes

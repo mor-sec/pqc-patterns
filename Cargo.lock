@@ -567,6 +567,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "kx-02-hybrid-mtls"
+version = "0.1.0"
+dependencies = [
+ "rcgen",
+ "rustls",
+ "x509-parser",
+]
+
+[[package]]
 name = "kx-03-hpke-hybrid-envelope"
 version = "0.1.0"
 dependencies = [

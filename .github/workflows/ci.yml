@@ -19,6 +19,7 @@ jobs:
           - sig-01-mldsa-api-signing
           - kx-03-hpke-hybrid-envelope
           - kx-01-hybrid-tls
+          - kx-02-hybrid-mtls
           - sess-02-mldsa-signed-tokens
     defaults:
       run:

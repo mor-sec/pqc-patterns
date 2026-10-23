@@ -19,7 +19,7 @@ Let anyone who downloads a release, firmware image or build output check that it
 | Context string | `pqc-patterns/sig-02/artifact/v1` | FIPS 204 domain separation. A signature made for an API request or token with the same key can never be passed off as an artifact signature. |
 | What is signed | A seven-line text statement: format version, algorithm, key ID, artifact name, size and SHA-512, signing time | Signing a statement rather than the raw file lets verifiers check the signature before reading a large file. The name stops a valid signature for one release being shown next to another, and the size stops length games. |
 | Digest | SHA-512, streamed | Constant memory for any artifact size. Collision resistance stays far above the signature's security level, even against quantum search. |
-| Key ID | Hex SHA-256 of the signer's `SubjectPublicKeyInfo`, as in [KEY-01](../key-01-pqc-key-storage/) | Verifiers look keys up in their own trusted set, which is how rotation and revocation work. The signature file never carries a public key. |
+| Key ID | Hex SHA-256 of the signer's `SubjectPublicKeyInfo`, as in pattern KEY-01 | Verifiers look keys up in their own trusted set, which is how rotation and revocation work. The signature file never carries a public key. |
 | Verification order | Parse strictly, then check the key, then the signature, then the name the caller expects, then size and digest | Nothing from an unauthenticated file is acted on. The name comes from the caller, never from the file. |
 | Encoding | One canonical spelling per field: lower-case hex, no leading zeros, UTC with whole seconds, standard base64, LF line endings | One statement, one encoding, so there is no room for parser differences between languages. |
 

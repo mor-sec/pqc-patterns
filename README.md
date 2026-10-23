@@ -17,6 +17,7 @@ Each pattern solves one common job, such as encrypting data at rest, signing API
 
 | ID | Pattern | Go | Rust | Java |
 | --- | --- | --- | --- | --- |
+| [HASH-03](patterns/hash-03-password-hashing/) | Storing passwords with Argon2id | x/crypto | RustCrypto argon2 | Bouncy Castle |
 | [KX-01](patterns/kx-01-hybrid-tls/) | Hybrid post-quantum TLS 1.3 | stdlib | rustls + aws-lc-rs | Bouncy Castle JSSE |
 | [KX-02](patterns/kx-02-hybrid-mtls/) | Mutual TLS between services | stdlib | rustls + aws-lc-rs | Bouncy Castle JSSE |
 | [KX-03](patterns/kx-03-hpke-hybrid-envelope/) | Hybrid envelope encryption with HPKE | stdlib | hpke-rs + libcrux | Bouncy Castle |

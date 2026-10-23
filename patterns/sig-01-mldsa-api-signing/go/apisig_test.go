@@ -20,10 +20,11 @@ func setup(t *testing.T) (*mldsa.PrivateKey, *Verifier, Request) {
 		t.Fatal(err)
 	}
 	v := &Verifier{
-		Keys: map[string]*mldsa.PublicKey{"svc-a-2026": sk.PublicKey()},
-		Now:  func() time.Time { return t0 },
+		Audience: "https://payments.internal",
+		Keys:     map[string]*mldsa.PublicKey{"svc-a-2026": sk.PublicKey()},
+		Now:      func() time.Time { return t0 },
 	}
-	r := Request{KeyID: "svc-a-2026", Timestamp: t0, Method: "POST", Path: "/v1/payments?dry_run=false", Body: []byte(`{"amount":1000}`)}
+	r := Request{KeyID: "svc-a-2026", Audience: "https://payments.internal", Timestamp: t0, Method: "POST", Path: "/v1/payments?dry_run=false", Body: []byte(`{"amount":1000}`)}
 	return sk, v, r
 }
 
@@ -68,6 +69,20 @@ func TestRejectsTampering(t *testing.T) {
 	bad[100] ^= 1
 	if err := v.Verify(r, bad); !errors.Is(err, ErrSignature) {
 		t.Error("tampered signature accepted")
+	}
+}
+
+func TestRejectsOtherAudience(t *testing.T) {
+	sk, v, r := setup(t)
+	r.Audience = "https://ledger.internal"
+	sig, _ := Sign(sk, r)
+	// The verifier uses its own audience, whatever the request claims.
+	if err := v.Verify(r, sig); !errors.Is(err, ErrSignature) {
+		t.Fatal("request signed for another receiver accepted")
+	}
+	v.Audience = ""
+	if err := v.Verify(r, sig); !errors.Is(err, ErrAudience) {
+		t.Fatal("verifier without an audience accepted a request")
 	}
 }
 
@@ -116,6 +131,7 @@ type vector struct {
 	Timestamp int64  `json:"timestamp"`
 	Method    string `json:"method"`
 	Path      string `json:"path"`
+	Audience  string `json:"audience"`
 	Body      string `json:"body"`
 	Signature string `json:"signature"`
 }
@@ -127,9 +143,9 @@ const vectorPath = "../testdata/vector.json"
 func TestVector(t *testing.T) {
 	if os.Getenv("PQC_WRITE_VECTORS") == "1" {
 		sk, _ := GenerateKey()
-		r := Request{KeyID: "vector-key", Timestamp: t0, Method: "POST", Path: "/v1/vectors", Body: []byte("cross-language test vector")}
+		r := Request{KeyID: "vector-key", Audience: "https://vectors.example", Timestamp: t0, Method: "POST", Path: "/v1/vectors", Body: []byte("cross-language test vector")}
 		sig, _ := Sign(sk, r)
-		v := vector{hex.EncodeToString(sk.Bytes()), hex.EncodeToString(sk.PublicKey().Bytes()), r.KeyID, r.Timestamp.Unix(), r.Method, r.Path, hex.EncodeToString(r.Body), hex.EncodeToString(sig)}
+		v := vector{hex.EncodeToString(sk.Bytes()), hex.EncodeToString(sk.PublicKey().Bytes()), r.KeyID, r.Timestamp.Unix(), r.Method, r.Path, r.Audience, hex.EncodeToString(r.Body), hex.EncodeToString(sig)}
 		out, _ := json.MarshalIndent(v, "", "  ")
 		os.MkdirAll("../testdata", 0o755)
 		if err := os.WriteFile(vectorPath, append(out, '\n'), 0o644); err != nil {
@@ -153,8 +169,8 @@ func TestVector(t *testing.T) {
 	if err != nil || !bytes.Equal(sk.PublicKey().Bytes(), pkBytes) {
 		t.Fatal("seed does not derive the vector's public key")
 	}
-	pk, _ := mldsa.NewPublicKey(Params, pkBytes)
-	ver := &Verifier{Keys: map[string]*mldsa.PublicKey{v.KeyID: pk}, Now: func() time.Time { return time.Unix(v.Timestamp, 0) }}
+	pk, _ := mldsa.NewPublicKey(Params(), pkBytes)
+	ver := &Verifier{Audience: v.Audience, Keys: map[string]*mldsa.PublicKey{v.KeyID: pk}, Now: func() time.Time { return time.Unix(v.Timestamp, 0) }}
 	r := Request{KeyID: v.KeyID, Timestamp: time.Unix(v.Timestamp, 0), Method: v.Method, Path: v.Path, Body: body}
 	if err := ver.Verify(r, sig); err != nil {
 		t.Fatal(err)

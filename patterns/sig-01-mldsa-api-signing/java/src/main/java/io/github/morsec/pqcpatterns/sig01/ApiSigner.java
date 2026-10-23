@@ -22,17 +22,19 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /**
  * Pattern SIG-01: signing API requests with ML-DSA-65 (FIPS 204) so a receiver can prove who
- * sent a request and that it was not altered or replayed.
+ * sent a request, that it was meant for that receiver, that it was not altered, and that it is
+ * recent. Replay inside the freshness window is not detected; see {@link #verify}.
  *
- * <p>The signed message is a length-prefixed encoding of key ID, timestamp (Unix seconds,
- * decimal), HTTP method, path and body, signed under the ML-DSA context string {@link #CONTEXT}.
+ * <p>The signed message is a length-prefixed encoding of key ID, audience, timestamp (Unix
+ * seconds, decimal), HTTP method, path and body, signed under the ML-DSA context string {@link
+ * #CONTEXT}.
  *
  * <p>Uses Bouncy Castle rather than the JDK 24+ built-in ML-DSA because the JDK does not support
  * context strings, and because Bouncy Castle runs on Java 21 LTS.
  */
 public final class ApiSigner {
   /** Domain-separates API request signatures (FIPS 204, section 5.2). */
-  public static final byte[] CONTEXT = "pqc-patterns/sig-01/api-request/v1".getBytes(UTF_8);
+  public static final byte[] CONTEXT = "pqc-patterns/sig-01/api-request/v2".getBytes(UTF_8);
 
   public static final Duration DEFAULT_MAX_SKEW = Duration.ofMinutes(5);
   /** Use {@code ml_dsa_87} where CNSA 2.0 applies. */
@@ -42,14 +44,22 @@ public final class ApiSigner {
 
   private ApiSigner() {}
 
-  /** The part of an HTTP request covered by the signature. Path includes the query string. */
-  public record Request(String keyId, Instant timestamp, String method, String path, byte[] body) {
+  /**
+   * The part of an HTTP request covered by the signature. Path includes the query string.
+   *
+   * <p>{@code audience} names the receiver the request is for, such as {@code
+   * https://payments.internal}. It stops a request signed for one receiver being replayed to
+   * another that trusts the same key. It is signed but not sent: the receiver supplies its own.
+   */
+  public record Request(
+      String keyId, String audience, Instant timestamp, String method, String path, byte[] body) {
     /** The exact bytes that are signed. */
     public byte[] message() {
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       for (byte[] f :
           new byte[][] {
             keyId.getBytes(UTF_8),
+            audience.getBytes(UTF_8),
             Long.toString(timestamp.getEpochSecond()).getBytes(UTF_8),
             method.getBytes(UTF_8),
             path.getBytes(UTF_8),
@@ -107,12 +117,23 @@ public final class ApiSigner {
   }
 
   /**
-   * Checks the timestamp window, then the signature. Does not detect a replay inside the window;
-   * pair it with a nonce or idempotency-key cache if requests are not idempotent.
+   * Checks the key ID, the timestamp window, then the signature over r with {@code audience}, this
+   * receiver's own identity, in place of {@code r.audience()}. Does not detect a replay to this
+   * receiver inside the window; pair it with a nonce or idempotency-key cache if requests are not
+   * idempotent.
    */
   public static void verify(
-      Map<String, MLDSAPublicKey> keys, Request r, byte[] sig, Instant now, Duration maxSkew)
+      Map<String, MLDSAPublicKey> keys,
+      String audience,
+      Request r,
+      byte[] sig,
+      Instant now,
+      Duration maxSkew)
       throws VerifyException {
+    if (audience == null || audience.isEmpty()) {
+      throw new IllegalArgumentException("verifier audience is required");
+    }
+    r = new Request(r.keyId(), audience, r.timestamp(), r.method(), r.path(), r.body());
     MLDSAPublicKey pk = keys.get(r.keyId());
     if (pk == null) {
       throw new VerifyException(Failure.UNKNOWN_KEY);

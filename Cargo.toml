@@ -4,6 +4,7 @@ members = [
   "patterns/sym-01-aead-at-rest/rust",
   "patterns/sig-01-mldsa-api-signing/rust",
   "patterns/kx-03-hpke-hybrid-envelope/rust",
+  "patterns/key-01-pqc-key-storage/rust",
   "patterns/kx-01-hybrid-tls/rust",
   "patterns/hash-02-hkdf-key-derivation/rust",
   "patterns/hash-03-password-hashing/rust",

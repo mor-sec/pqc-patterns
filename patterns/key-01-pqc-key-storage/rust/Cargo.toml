@@ -1,0 +1,22 @@
+[package]
+name = "key-01-pqc-key-storage"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+# RustCrypto ML-DSA and ML-KEM: both implement the seed-only PKCS#8 form of
+# RFC 9881 and RFC 9935. Not independently audited; see the pattern README.
+ml-dsa = "0.1.1"
+ml-kem = { version = "0.3.3", features = ["pkcs8"] }
+pkcs8 = { version = "0.11", features = ["pem", "alloc"] }
+getrandom = { version = "0.4", features = ["sys_rng"] }
+aws-lc-rs = "1.18"
+zeroize = "1.8"
+
+[dev-dependencies]
+hex = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

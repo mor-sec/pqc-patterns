@@ -4,6 +4,8 @@ Copy-ready patterns for writing production code with post-quantum safe cryptogra
 
 Each pattern solves one common job, such as encrypting data at rest, signing API requests or configuring TLS. It gives a recommended construction, runnable and tested code in all three languages, the anti-patterns to look for in review, and a migration path from the classical version.
 
+Read it as a website, with a migration guide, at **[mor-sec.github.io/pqc-patterns](https://mor-sec.github.io/pqc-patterns/)**.
+
 ## Defaults
 
 | Job | Default | CNSA 2.0 |
@@ -48,6 +50,15 @@ cd patterns/<pattern>/go && PQC_WRITE_VECTORS=1 go test ./...
 | Go | Go 1.27+ | `cd patterns/<pattern>/go && go test ./...` |
 | Rust | Rust 1.85+, a C compiler and CMake (for aws-lc-sys) | `cargo test` from the repo root |
 | Java | Java 21+ and Maven | `mvn test` from the repo root |
+
+## Building the docs site
+
+The site is built with MkDocs from [`docs/`](docs/) and from the README of every pattern and of the checker, so there is one copy of each page:
+
+```sh
+pip install -r tools/docs-requirements.txt
+mkdocs serve        # or: mkdocs build --strict
+```
 
 ## Library maturity
 

@@ -68,6 +68,8 @@ rules:
       ML-DSA signature with an empty context string. Pass a context naming the
       purpose, so signatures cannot be replayed into another protocol that uses the
       same key.
+      JOSE and COSE are the exception: RFC 9964 requires the empty context
+      (pattern SESS-02).
     metadata:
       pattern: SIG-01
       docs: patterns/sig-01-mldsa-api-signing/README.md

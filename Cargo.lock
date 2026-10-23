@@ -415,6 +415,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e4eba85ea1d0a966a983acd07deee566e67395d2d96b6fb39e62b5a833f1eb0b"
 
 [[package]]
+name = "hash-02-hkdf-key-derivation"
+version = "0.1.0"
+dependencies = [
+ "aws-lc-rs",
+ "hex",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "hash-03-password-hashing"
 version = "0.1.0"
 dependencies = [
@@ -1287,6 +1297,18 @@ dependencies = [
  "serde",
  "serde_core",
  "zmij",
+]
+
+[[package]]
+name = "sess-02-mldsa-signed-tokens"
+version = "0.1.0"
+dependencies = [
+ "base64",
+ "getrandom 0.4.3",
+ "hex",
+ "ml-dsa",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

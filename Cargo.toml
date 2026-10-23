@@ -1,0 +1,14 @@
+[workspace]
+resolver = "3"
+members = [
+  "patterns/sym-01-aead-at-rest/rust",
+  "patterns/sig-01-mldsa-api-signing/rust",
+  "patterns/kx-03-hpke-hybrid-envelope/rust",
+  "patterns/kx-01-hybrid-tls/rust",
+]
+
+[workspace.package]
+edition = "2024"
+license = "MIT"
+rust-version = "1.85"
+publish = false

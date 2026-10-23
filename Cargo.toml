@@ -10,6 +10,7 @@ members = [
   "patterns/pki-01-mldsa-certificates/rust",
   "patterns/kx-02-hybrid-mtls/rust",
   "patterns/sess-02-mldsa-signed-tokens/rust",
+  "patterns/sym-03-streaming-encryption/rust",
 ]
 
 [workspace.package]

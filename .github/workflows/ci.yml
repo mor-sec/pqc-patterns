@@ -23,6 +23,7 @@ jobs:
           - hash-03-password-hashing
           - kx-02-hybrid-mtls
           - sess-02-mldsa-signed-tokens
+          - sym-03-streaming-encryption
     defaults:
       run:
         working-directory: patterns/${{ matrix.pattern }}/go

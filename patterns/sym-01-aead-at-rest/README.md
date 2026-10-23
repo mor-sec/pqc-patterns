@@ -8,7 +8,7 @@ Encrypt records, files or fields at rest so that anyone without the key can neit
 
 - Encrypting database fields, blobs or files with a symmetric key you control, usually a data key from a KMS.
 - Use [KX-03](../kx-03-hpke-hybrid-envelope/) instead when the reader holds a key pair rather than a shared secret key.
-- Use SYM-03 (planned) for large streams or files that do not fit in memory.
+- Use [SYM-03](../sym-03-streaming-encryption/) for large streams or files that do not fit in memory.
 
 ## Recommended construction
 

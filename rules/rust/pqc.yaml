@@ -88,7 +88,8 @@ rules:
     severity: ERROR
     message: >-
       Unauthenticated cipher mode: ciphertexts can be modified without detection.
-      Use AES-256-GCM with associated data (pattern SYM-01).
+      Use AES-256-GCM with associated data (pattern SYM-01),
+      or segmented AES-256-GCM for large files and streams (pattern SYM-03).
     metadata:
       pattern: SYM-01
       docs: patterns/sym-01-aead-at-rest/README.md
@@ -153,6 +154,17 @@ rules:
               let mut $V = [$B; $N];
               ...
               <... &mut $V ...>;
+              ...
+          # Nor once part of it is written, as when building a counter nonce (SYM-03).
+          - pattern-not-inside: |
+              let mut $V = [$B; $N];
+              ...
+              $V[$I] = $X;
+              ...
+          - pattern-not-inside: |
+              let mut $V = [$B; $N];
+              ...
+              $V[$I].$M(...);
               ...
 
   - id: pqc-tls-classical-groups

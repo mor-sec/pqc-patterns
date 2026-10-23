@@ -20,7 +20,7 @@ Let two services authenticate each other with certificates and protect the traff
 | Client identity | Exactly one URI SAN, such as `spiffe://example.org/billing` | A stable, structured name. SPIFFE-compatible, so it works with SPIRE and most meshes. |
 | Authorisation | Allow-list of client identities, checked inside the handshake | Trusting the CA proves who the caller is. The allow-list decides whether it may connect. Rejecting in the handshake means a disallowed caller never reaches application code. |
 | Server identity | DNS name, verified by the client | Standard hostname verification. |
-| Certificates | ECDSA P-256 (P-384 for CNSA 2.0) for now, short-lived | Post-quantum certificates are tracked in PKI-01. Short lifetimes, such as hours or days, limit the damage from a stolen key. |
+| Certificates | ECDSA P-256 (P-384 for CNSA 2.0) for now, short-lived | Post-quantum certificates are covered by [PKI-01](../pki-01-mldsa-certificates/). Short lifetimes, such as hours or days, limit the damage from a stolen key. |
 
 ## Code
 
@@ -74,7 +74,7 @@ Tests run real handshakes with a test CA and check that:
 ## Threat notes
 
 - Protects confidentiality against harvest-now-decrypt-later, and authenticates both ends against classical attackers.
-- Authentication is not yet quantum-safe. That needs ML-DSA certificates (PKI-01). It matters once a quantum computer exists, not for traffic recorded today.
+- Authentication is not yet quantum-safe. That needs ML-DSA certificates ([PKI-01](../pki-01-mldsa-certificates/)). It matters once a quantum computer exists, not for traffic recorded today.
 - The allow-list is only as good as the CA's issuance policy. If an attacker can get any certificate with an allowed URI SAN, they are that service.
 - Revocation is not checked. Use short-lived certificates instead.
 

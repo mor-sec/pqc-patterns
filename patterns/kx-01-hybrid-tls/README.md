@@ -18,7 +18,7 @@ Make every TLS connection your service opens or accepts use a hybrid post-quantu
 | Key exchange | `X25519MLKEM768`, then `SecP256r1MLKEM768` | Hybrid groups from [RFC 10024](https://datatracker.ietf.org/doc/html/rfc10024). X25519MLKEM768 is the IANA-recommended default. |
 | Classical fallback | `x25519`, compatible mode only | Keeps old clients working while you measure them. |
 | Monitoring | Log the negotiated group and alert on classical connections | Defaults change silently with library upgrades and config flags. |
-| Certificates | Classical (ECDSA P-256 or RSA) for now | Harvest-now-decrypt-later attacks target key exchange, not authentication. ML-DSA certificates are covered by PKI-01. |
+| Certificates | Classical (ECDSA P-256 or RSA) for now | Harvest-now-decrypt-later attacks target key exchange, not authentication. ML-DSA certificates are covered by [PKI-01](../pki-01-mldsa-certificates/). |
 
 **CNSA 2.0 variant:** put `SecP384r1MLKEM1024` first. Go and Bouncy Castle support it; rustls's aws-lc-rs provider does not yet.
 
@@ -69,7 +69,7 @@ Tests run real handshakes and check that:
 ## Threat notes
 
 - Protects session confidentiality against harvest-now-decrypt-later.
-- Does not make authentication quantum-safe. That needs post-quantum certificates (PKI-01), which matter only once quantum computers exist, not for recorded traffic.
+- Does not make authentication quantum-safe. That needs post-quantum certificates ([PKI-01](../pki-01-mldsa-certificates/)), which matter only once quantum computers exist, not for recorded traffic.
 - Hybrid ClientHellos are about 1.2 KB larger. Some middleboxes and old load balancers mishandle them, so test through your real network path.
 
 ## Migration

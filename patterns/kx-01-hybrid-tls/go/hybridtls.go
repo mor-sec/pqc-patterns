@@ -29,12 +29,16 @@ const (
 	Compatible
 )
 
-// Hybrid lists the post-quantum hybrid groups in preference order. Add
+// hybrid lists the post-quantum hybrid groups in preference order. Add
 // tls.SecP384r1MLKEM1024 first for CNSA 2.0 systems.
-var Hybrid = []tls.CurveID{tls.X25519MLKEM768, tls.SecP256r1MLKEM768}
+var hybrid = []tls.CurveID{tls.X25519MLKEM768, tls.SecP256r1MLKEM768}
+
+// Hybrid returns a copy of the hybrid groups this package offers, in
+// preference order.
+func Hybrid() []tls.CurveID { return append([]tls.CurveID(nil), hybrid...) }
 
 func curves(m Mode) []tls.CurveID {
-	c := append([]tls.CurveID(nil), Hybrid...)
+	c := Hybrid()
 	if m == Compatible {
 		c = append(c, tls.X25519)
 	}
@@ -66,7 +70,7 @@ var ErrClassicalKeyExchange = errors.New("hybridtls: connection did not negotiat
 // RequireHybrid checks a completed handshake. Call it from monitoring or a
 // VerifyConnection hook to alert on, or refuse, classical-only connections.
 func RequireHybrid(cs tls.ConnectionState) error {
-	for _, c := range Hybrid {
+	for _, c := range hybrid {
 		if cs.CurveID == c {
 			return nil
 		}

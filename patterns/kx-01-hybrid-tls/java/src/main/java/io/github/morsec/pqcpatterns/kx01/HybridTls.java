@@ -46,7 +46,13 @@ public final class HybridTls {
     return BCJSSE;
   }
 
-  /** A TLS 1.3 context backed by Bouncy Castle JSSE. */
+  /**
+   * A context backed by Bouncy Castle JSSE.
+   *
+   * <p>On its own this context still allows TLS 1.2, uses the provider's default groups and does
+   * not check hostnames. Apply {@link #parameters} to every socket and engine it creates, as
+   * shown in the pattern README, or the policy in this pattern is not in force.
+   */
   public static SSLContext context(KeyManager[] keyManagers, TrustManager[] trustManagers)
       throws GeneralSecurityException {
     SSLContext ctx = SSLContext.getInstance("TLSv1.3", BCJSSE);
@@ -55,8 +61,9 @@ public final class HybridTls {
   }
 
   /**
-   * Parameters to apply to every client socket, server socket or SSLEngine. Clients should also
-   * keep hostname verification on, which this sets.
+   * Parameters to apply to every client socket, server socket or SSLEngine created from {@link
+   * #context}. They restrict the connection to TLS 1.3 and the mode's groups, and turn on
+   * hostname verification for clients. Callers that replace them must keep all three.
    */
   public static SSLParameters parameters(Mode mode) {
     List<String> groups = new ArrayList<>(HYBRID);

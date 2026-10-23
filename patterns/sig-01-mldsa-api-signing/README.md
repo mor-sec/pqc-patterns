@@ -2,7 +2,7 @@
 
 ## Intent
 
-Let a service prove that an API request came from a specific caller, was not changed in transit, and is fresh, using a signature that stays secure against quantum attacks.
+Let a service prove that an API request came from a specific caller, was meant for that service, was not changed in transit, and is fresh, using a signature that stays secure against quantum attacks.
 
 ## When to use it
 
@@ -16,9 +16,10 @@ Let a service prove that an API request came from a specific caller, was not cha
 | --- | --- | --- |
 | Algorithm | ML-DSA-65 (FIPS 204) | NIST's general-purpose post-quantum signature. 1952-byte public keys, 3309-byte signatures. |
 | CNSA 2.0 variant | ML-DSA-87 | Required for national security systems. |
-| Context string | `pqc-patterns/sig-01/api-request/v1` | FIPS 204 domain separation: a signature made for this purpose cannot be replayed as a signature for anything else the key signs. |
-| Signed message | Length-prefixed key ID, timestamp, method, path with query, body | Covers everything that changes the request's meaning. Length prefixes stop field-boundary tricks. |
-| Freshness | Timestamp within ±5 minutes | Bounds replay. Add a nonce or idempotency-key cache for non-idempotent endpoints. |
+| Context string | `pqc-patterns/sig-01/api-request/v2` | FIPS 204 domain separation: a signature made for this purpose cannot be replayed as a signature for anything else the key signs. |
+| Signed message | Length-prefixed key ID, audience, timestamp, method, path with query, body | Covers everything that changes the request's meaning. Length prefixes stop field-boundary tricks. |
+| Audience | The receiver's own identity, such as `https://payments.internal` | Stops a request signed for one receiver being replayed to another that trusts the same key, for example another webhook tenant or staging. The verifier always uses its configured audience, never one taken from the request. |
+| Freshness | Timestamp within ±5 minutes | Bounds replay to the same receiver. Add a nonce or idempotency-key cache for non-idempotent endpoints. |
 | Private key storage | The 32-byte FIPS 204 seed | Smallest form, and every library here can expand it. |
 
 Hedged (randomised) signing is the default. Signatures over the same request differ, and all of them verify.
@@ -32,12 +33,14 @@ Hedged (randomised) signing is the default. Signatures over the same request dif
 | Java | [java/.../ApiSigner.java](java/src/main/java/io/github/morsec/pqcpatterns/sig01/ApiSigner.java) | Bouncy Castle 1.86 |
 
 ```go
-sig, _ := apisig.Sign(sk, apisig.Request{KeyID: "svc-a-2026", Timestamp: time.Now(), Method: "POST", Path: "/v1/payments", Body: body})
-// Send KeyID, Timestamp and base64(sig) as headers; the receiver rebuilds Request and calls Verify.
+sig, _ := apisig.Sign(sk, apisig.Request{KeyID: "svc-a-2026", Audience: "https://payments.internal", Timestamp: time.Now(), Method: "POST", Path: "/v1/payments", Body: body})
+// Send KeyID, Timestamp and base64(sig) as headers. The receiver rebuilds Request and calls Verify,
+// which signs over its own Audience, so a request meant for another service fails.
+verifier := &apisig.Verifier{Audience: "https://payments.internal", Keys: trusted}
 err := verifier.Verify(req, sig)
 ```
 
-Tests cover round trips, tampering with each signed field, a corrupted signature, a signature under a different context, stale and unknown keys, field-boundary ambiguity, seed round trips, and verification of the shared Go-generated vector in [testdata/vector.json](testdata/vector.json).
+Tests cover round trips, tampering with each signed field, a request signed for another audience, a corrupted signature, a signature under a different context, stale and unknown keys, field-boundary ambiguity, seed round trips, and verification of the shared Go-generated vector in [testdata/vector.json](testdata/vector.json).
 
 **Library notes**
 
@@ -60,7 +63,7 @@ Tests cover round trips, tampering with each signed field, a corrupted signature
 - Protects request authenticity and integrity against classical and quantum attackers.
 - Harvest-now-decrypt-later does not apply to signatures, but forgery does once a quantum computer exists, so long-lived verification keys matter most.
 - Does not provide confidentiality; use TLS (KX-01).
-- Does not stop replay inside the window by itself.
+- Does not stop replay to the same receiver inside the window by itself. Replay to a different receiver fails because the audience is signed.
 
 ## Migration
 

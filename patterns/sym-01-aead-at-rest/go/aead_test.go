@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"os"
+	"sync"
 	"testing"
 )
 
@@ -125,4 +126,33 @@ func TestVector(t *testing.T) {
 	if err != nil || !bytes.Equal(got, want) {
 		t.Fatalf("vector failed: %v", err)
 	}
+}
+
+func TestConcurrentRotate(t *testing.T) {
+	k, err := NewKeyring(1, NewKey())
+	if err != nil {
+		t.Fatal(err)
+	}
+	var wg sync.WaitGroup
+	for i := uint32(2); i < 10; i++ {
+		wg.Add(2)
+		go func() {
+			defer wg.Done()
+			if err := k.Add(i, NewKey()); err == nil {
+				k.Rotate(i)
+			}
+		}()
+		go func() {
+			defer wg.Done()
+			blob, err := k.Encrypt([]byte("pt"), nil)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			if _, err := k.Decrypt(blob, nil); err != nil {
+				t.Error(err)
+			}
+		}()
+	}
+	wg.Wait()
 }

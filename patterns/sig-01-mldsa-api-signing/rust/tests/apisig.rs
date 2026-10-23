@@ -14,6 +14,7 @@ fn setup() -> (ml_dsa::SigningKey<Params>, Verifier) {
     (
         sk,
         Verifier {
+            audience: "https://payments.internal".to_string(),
             keys,
             max_skew: DEFAULT_MAX_SKEW,
         },
@@ -23,6 +24,7 @@ fn setup() -> (ml_dsa::SigningKey<Params>, Verifier) {
 fn req<'a>() -> Request<'a> {
     Request {
         key_id: "svc-a-2026",
+        audience: "https://payments.internal",
         timestamp: T0,
         method: "POST",
         path: "/v1/payments?dry_run=false",
@@ -67,6 +69,37 @@ fn rejects_tampering() {
     bad[100] ^= 1;
     assert_eq!(v.verify_at(&req(), &bad, T0), Err(VerifyError::Signature));
     assert_eq!(v.verify_at(&req(), &sig[..100], T0), Err(VerifyError::Signature));
+}
+
+#[test]
+fn rejects_other_audience() {
+    let (sk, mut v) = setup();
+    let other = Request {
+        audience: "https://ledger.internal",
+        ..req()
+    };
+    // The verifier uses its own audience, whatever the request claims.
+    assert_eq!(
+        v.verify_at(&other, &sign(&sk, &other), T0),
+        Err(VerifyError::Signature)
+    );
+    v.audience.clear();
+    assert_eq!(
+        v.verify_at(&req(), &sign(&sk, &req()), T0),
+        Err(VerifyError::NoAudience)
+    );
+}
+
+#[test]
+fn extreme_timestamps_are_stale() {
+    let (sk, v) = setup();
+    for ts in [i64::MIN, i64::MAX] {
+        let r = Request {
+            timestamp: ts,
+            ..req()
+        };
+        assert_eq!(v.verify_at(&r, &sign(&sk, &r), T0), Err(VerifyError::Stale));
+    }
 }
 
 #[test]
@@ -129,6 +162,7 @@ struct Vector {
     timestamp: i64,
     method: String,
     path: String,
+    audience: String,
     body: String,
     signature: String,
 }
@@ -149,12 +183,14 @@ fn cross_language_vector() {
 
     let pk = load_public_key(&pk_bytes).unwrap();
     let verifier = Verifier {
+        audience: v.audience.clone(),
         keys: HashMap::from([(v.key_id.clone(), pk)]),
         max_skew: DEFAULT_MAX_SKEW,
     };
     let body = hex::decode(&v.body).unwrap();
     let r = Request {
         key_id: &v.key_id,
+        audience: &v.audience,
         timestamp: v.timestamp,
         method: &v.method,
         path: &v.path,

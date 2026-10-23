@@ -15,6 +15,7 @@
     <module>patterns/kx-03-hpke-hybrid-envelope/java</module>
     <module>patterns/kx-01-hybrid-tls/java</module>
     <module>patterns/kx-02-hybrid-mtls/java</module>
+    <module>patterns/sess-02-mldsa-signed-tokens/java</module>
   </modules>
 
   <properties>

@@ -6,6 +6,7 @@ members = [
   "patterns/kx-03-hpke-hybrid-envelope/rust",
   "patterns/kx-01-hybrid-tls/rust",
   "patterns/kx-02-hybrid-mtls/rust",
+  "patterns/sess-02-mldsa-signed-tokens/rust",
 ]
 
 [workspace.package]

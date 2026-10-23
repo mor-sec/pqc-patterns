@@ -20,6 +20,7 @@ jobs:
           - kx-03-hpke-hybrid-envelope
           - kx-01-hybrid-tls
           - hash-02-hkdf-key-derivation
+          - hash-03-password-hashing
           - kx-02-hybrid-mtls
           - sess-02-mldsa-signed-tokens
     defaults:

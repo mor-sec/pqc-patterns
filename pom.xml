@@ -15,6 +15,7 @@
     <module>patterns/kx-03-hpke-hybrid-envelope/java</module>
     <module>patterns/kx-01-hybrid-tls/java</module>
     <module>patterns/hash-02-hkdf-key-derivation/java</module>
+    <module>patterns/hash-03-password-hashing/java</module>
     <module>patterns/kx-02-hybrid-mtls/java</module>
     <module>patterns/pki-01-mldsa-certificates/java</module>
     <module>patterns/sess-02-mldsa-signed-tokens/java</module>

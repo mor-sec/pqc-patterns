@@ -1,0 +1,193 @@
+rules:
+  - id: pqc-kx-rsa-encrypt
+    languages: [java]
+    severity: ERROR
+    message: >-
+      RSA encryption is broken by Shor's algorithm, and anything encrypted with it
+      today can be decrypted later. Use hybrid HPKE (ML-KEM-768 + X25519) instead.
+    metadata:
+      pattern: KX-03
+      docs: patterns/kx-03-hpke-hybrid-envelope/README.md
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      category: security
+    patterns:
+      - pattern: javax.crypto.Cipher.getInstance("$ALG", ...)
+      - metavariable-regex:
+          metavariable: $ALG
+          regex: (?i)^RSA(/.*)?$
+
+  - id: pqc-kx-classical-ecdh
+    languages: [java]
+    severity: WARNING
+    message: >-
+      Raw ECDH, XDH or DH key agreement is not quantum-safe on its own. For encrypting
+      to a public key use hybrid HPKE (X-Wing); for transport use TLS 1.3 with
+      X25519MLKEM768. Ignore this if the result feeds a hybrid combiner.
+    metadata:
+      pattern: KX-03
+      docs: patterns/kx-03-hpke-hybrid-envelope/README.md
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      category: security
+    pattern-either:
+      - patterns:
+          - pattern: javax.crypto.KeyAgreement.getInstance("$ALG", ...)
+          - metavariable-regex:
+              metavariable: $ALG
+              regex: (?i)^(ECDH|ECDHC|XDH|X25519|X448|DH|DiffieHellman)$
+      - pattern: new org.bouncycastle.crypto.hpke.HPKE($M, org.bouncycastle.crypto.hpke.HPKE.kem_X25519_SHA256, ...)
+      - pattern: new org.bouncycastle.crypto.hpke.HPKE($M, org.bouncycastle.crypto.hpke.HPKE.kem_P256_SHA256, ...)
+
+  - id: pqc-sig-classical-keygen
+    languages: [java]
+    severity: WARNING
+    message: >-
+      New RSA, EC, EdDSA or DSA signing keys will be forgeable by a quantum computer.
+      Use ML-DSA-65 for new signing keys. TLS certificate keys can stay classical for
+      now (see PKI-01).
+    metadata:
+      pattern: SIG-01
+      docs: patterns/sig-01-mldsa-api-signing/README.md
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      category: security
+    paths:
+      exclude: ["**/src/test/**", "*Test.java"]
+    patterns:
+      - pattern: java.security.KeyPairGenerator.getInstance("$ALG", ...)
+      - metavariable-regex:
+          metavariable: $ALG
+          regex: (?i)^(RSA|RSASSA-PSS|EC|ECDSA|Ed25519|Ed448|EdDSA|DSA)$
+
+  - id: pqc-sym-unauthenticated-mode
+    languages: [java]
+    severity: ERROR
+    message: >-
+      Unauthenticated or ECB cipher mode: ciphertexts can be modified without
+      detection, and ECB leaks patterns. Plain "AES" means AES/ECB in most providers.
+      Use AES/GCM/NoPadding with associated data (pattern SYM-01).
+    metadata:
+      pattern: SYM-01
+      docs: patterns/sym-01-aead-at-rest/README.md
+      cwe: "CWE-353: Missing Support for Integrity Check"
+      category: security
+    patterns:
+      - pattern: javax.crypto.Cipher.getInstance("$ALG", ...)
+      - metavariable-regex:
+          metavariable: $ALG
+          regex: (?i)^(AES|DES|DESede|Blowfish)(/(ECB|CBC|CFB\d*|OFB\d*|CTR|PCBC)/.*)?$
+
+  - id: pqc-sym-aes-128
+    languages: [java]
+    severity: WARNING
+    message: >-
+      AES-128 key. Grover's algorithm leaves it with about 64 bits of security
+      against a large quantum computer. Use 256-bit keys.
+    metadata:
+      pattern: SYM-01
+      docs: patterns/sym-01-aead-at-rest/README.md
+      cwe: "CWE-326: Inadequate Encryption Strength"
+      category: security
+    pattern-either:
+      - patterns:
+          - pattern-inside: |
+              $G = javax.crypto.KeyGenerator.getInstance("AES", ...);
+              ...
+          - pattern: $G.init(128, ...)
+      - pattern: new javax.crypto.spec.SecretKeySpec(java.util.Arrays.copyOf($K, 16), "AES")
+      - pattern: new org.bouncycastle.crypto.hpke.HPKE($M, $KEM, $KDF, org.bouncycastle.crypto.hpke.HPKE.aead_AES_GCM128)
+
+  - id: pqc-sym-static-nonce
+    languages: [java]
+    severity: ERROR
+    message: >-
+      GCM nonce is a fresh all-zero array. Reusing a GCM nonce with the same key
+      leaks the authentication key and plaintext. Fill the nonce from SecureRandom
+      for every message.
+    metadata:
+      pattern: SYM-01
+      docs: patterns/sym-01-aead-at-rest/README.md
+      cwe: "CWE-323: Reusing a Nonce, Key Pair in Encryption"
+      category: security
+    pattern-either:
+      - pattern: new javax.crypto.spec.GCMParameterSpec($T, new byte[$N])
+      - patterns:
+          - pattern: new javax.crypto.spec.GCMParameterSpec($T, $IV)
+          - pattern-inside: |
+              byte[] $IV = new byte[$N];
+              ...
+          - pattern-not-inside: |
+              byte[] $IV = new byte[$N];
+              ...
+              $RNG.nextBytes($IV);
+              ...
+
+  - id: pqc-tls-classical-groups
+    languages: [java]
+    severity: ERROR
+    message: >-
+      Named groups list no post-quantum hybrid group, so the handshake cannot use
+      X25519MLKEM768. Put "X25519MLKEM768" first (pattern KX-01).
+    metadata:
+      pattern: KX-01
+      docs: patterns/kx-01-hybrid-tls/README.md
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      category: security
+    patterns:
+      - pattern-either:
+          - pattern: $P.setNamedGroups(new String[] {...})
+          - pattern: System.setProperty("jdk.tls.namedGroups", $V)
+      - pattern-not: $P.setNamedGroups(new String[] {..., "X25519MLKEM768", ...})
+      - pattern-not: $P.setNamedGroups(new String[] {..., "SecP256r1MLKEM768", ...})
+      - pattern-not: $P.setNamedGroups(new String[] {..., "SecP384r1MLKEM1024", ...})
+      - pattern-not: System.setProperty("jdk.tls.namedGroups", "=~/MLKEM/")
+
+  - id: pqc-tls-min-version
+    languages: [java]
+    severity: WARNING
+    message: >-
+      TLS versions below 1.3 cannot negotiate hybrid post-quantum key exchange. Use
+      TLSv1.3 where you control both ends (pattern KX-01).
+    metadata:
+      pattern: KX-01
+      docs: patterns/kx-01-hybrid-tls/README.md
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      category: security
+    pattern-either:
+      - pattern: javax.net.ssl.SSLContext.getInstance("=~/^(SSL|SSLv3|TLSv1|TLSv1\.1|TLSv1\.2)$/", ...)
+      - pattern: $P.setProtocols(new String[] {..., "=~/^(SSLv3|TLSv1|TLSv1\.1|TLSv1\.2)$/", ...})
+      - pattern: $P.setEnabledProtocols(new String[] {..., "=~/^(SSLv3|TLSv1|TLSv1\.1|TLSv1\.2)$/", ...})
+
+  - id: pqc-tls-no-verify
+    languages: [java]
+    severity: ERROR
+    message: >-
+      Hostname or certificate verification is disabled. A strong key exchange does
+      not help if the peer is not authenticated.
+    metadata:
+      pattern: KX-01
+      docs: patterns/kx-01-hybrid-tls/README.md
+      cwe: "CWE-295: Improper Certificate Validation"
+      category: security
+    pattern-either:
+      - pattern: $X.setDefaultHostnameVerifier(($H, $S) -> true)
+      - pattern: $X.setHostnameVerifier(($H, $S) -> true)
+      - pattern: $P.setEndpointIdentificationAlgorithm(null)
+      - pattern: $P.setEndpointIdentificationAlgorithm("")
+      - pattern: |
+          void checkServerTrusted(...) { }
+      - pattern: org.apache.http.conn.ssl.NoopHostnameVerifier.INSTANCE
+
+  - id: pqc-hash-weak
+    languages: [java]
+    severity: ERROR
+    message: >-
+      MD5 and SHA-1 are broken for collision resistance. Use SHA-256 or above
+      (SHA-384 for CNSA 2.0), or SHA3-256.
+    metadata:
+      pattern: HASH-01
+      cwe: "CWE-328: Use of Weak Hash"
+      category: security
+    patterns:
+      - pattern: java.security.MessageDigest.getInstance("$ALG", ...)
+      - metavariable-regex:
+          metavariable: $ALG
+          regex: (?i)^(MD2|MD4|MD5|SHA|SHA-?1)$

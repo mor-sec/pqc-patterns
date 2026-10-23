@@ -50,8 +50,8 @@ Tests cover round trips, bit flips in the suite header, the ML-KEM ciphertext, t
 
 | Anti-pattern | Why it is wrong | Checker rule |
 | --- | --- | --- |
-| RSA-OAEP or RSA-KEM key wrapping | Broken by Shor's algorithm; stored ciphertexts are exposed later | `pqc.kx.rsa-encrypt` (planned) |
-| ECIES or raw ECDH plus a KDF | Same quantum exposure | `pqc.kx.classical-ecdh` (planned) |
+| RSA-OAEP or RSA-KEM key wrapping | Broken by Shor's algorithm; stored ciphertexts are exposed later | [`pqc-kx-rsa-encrypt`](../../rules/) |
+| ECIES or raw ECDH plus a KDF | Same quantum exposure | [`pqc-kx-classical-ecdh`](../../rules/) |
 | ML-KEM alone, without a classical component | ML-KEM is new; hybrid keeps today's security if a flaw is found | Review item |
 | Hand-rolled KEM combiners (`sha256(ss1 || ss2)`) | Easy to get wrong; use HPKE or X-Wing's specified combiner | Review item |
 | Empty or shared `info` across applications | Ciphertexts can be replayed into the wrong context | Review item |

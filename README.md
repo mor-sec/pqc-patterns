@@ -22,7 +22,15 @@ Each pattern solves one common job, such as encrypting data at rest, signing API
 | [SIG-01](patterns/sig-01-mldsa-api-signing/) | Signing API requests with ML-DSA | stdlib | RustCrypto ml-dsa | Bouncy Castle |
 | [SYM-01](patterns/sym-01-aead-at-rest/) | Authenticated encryption at rest | stdlib | aws-lc-rs | JDK |
 
-The full planned catalog of 24 patterns is tracked in the project plan. A Semgrep checker that links findings to these patterns is next.
+The full planned catalog of 24 patterns is tracked in the project plan.
+
+## Checker
+
+[`rules/`](rules/) holds Semgrep rules for Go, Java and Rust. They flag quantum-vulnerable or weak cryptography, such as RSA encryption, classical-only TLS groups, AES-128, static nonces and disabled certificate checks, and link each finding to the pattern that fixes it:
+
+```sh
+semgrep scan --config rules/ path/to/your/code
+```
 
 ## Cross-language test vectors
 

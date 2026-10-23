@@ -27,7 +27,7 @@ In practice the order is usually:
 
 You will change algorithms again, whether for a newer standard, a bigger parameter set or a broken implementation. Every pattern here leaves room for that:
 
-- Wire formats carry a version or algorithm identifier, such as the key ID in [SYM-01](../patterns/sym-01-aead-at-rest.md) and the versioned context string in [SIG-01](../patterns/sig-01-mldsa-api-signing.md).
+- Wire formats carry a version or algorithm identifier, such as the key ID in [SYM-01](../patterns/sym-01-aead-at-rest.md) and the versioned context string in [SIG-01](../patterns/sig-01-mldsa-api-signing.md), and the parameters stored in every password hash in [HASH-03](../patterns/hash-03-password-hashing.md).
 - Verifiers accept a set of keys, so you can rotate without a flag day.
 - Algorithm choices live in one function per pattern, not spread across call sites.
 

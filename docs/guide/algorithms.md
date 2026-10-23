@@ -40,7 +40,10 @@ Quantum search (Grover's algorithm) at most halves the effective key length, so 
 
 ## Hashing and key derivation
 
-SHA-256 and above are fine. SHA-384 or SHA-512 meet CNSA 2.0. Use HKDF to derive keys from a shared secret, with a distinct label per purpose. MD5 and SHA-1 are broken classically and the checker flags them.
+SHA-256 and above are fine. SHA-384 or SHA-512 meet CNSA 2.0. MD5 and SHA-1 are broken classically and the checker flags them.
+
+- To derive keys from a shared secret, use HKDF with a distinct label per purpose. See [HASH-02](../patterns/hash-02-hkdf-key-derivation.md).
+- To store passwords, use a memory-hard function such as Argon2id, never a plain hash. Quantum computers change little here, but this is one of the most common weak spots that turns up in a crypto inventory. See [HASH-03](../patterns/hash-03-password-hashing.md).
 
 ## CNSA 2.0
 

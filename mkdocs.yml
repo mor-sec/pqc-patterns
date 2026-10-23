@@ -1,0 +1,52 @@
+site_name: pqc-patterns
+site_description: Copy-ready post-quantum cryptography patterns for Go, Rust and Java
+site_url: https://mor-sec.github.io/pqc-patterns/
+repo_url: https://github.com/mor-sec/pqc-patterns
+repo_name: mor-sec/pqc-patterns
+edit_uri: ""
+copyright: MIT licensed
+
+theme:
+  name: material
+  font: false
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.highlight
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle: {icon: material/weather-night, name: Dark mode}
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle: {icon: material/weather-sunny, name: Light mode}
+
+# Pattern pages and the checker page are generated from the repo's READMEs.
+hooks:
+  - tools/docs_hooks.py
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+nav:
+  - Home: index.md
+  - Guide:
+      - Start here: guide/index.md
+      - Choosing algorithms: guide/algorithms.md
+      - Planning a migration: guide/migration.md
+  - Patterns: []   # filled in by tools/docs_hooks.py
+  - Checker: checker.md
+
+validation:
+  links:
+    not_found: warn
+    absolute_links: warn
+    unrecognized_links: warn

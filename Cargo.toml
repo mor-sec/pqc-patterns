@@ -6,6 +6,7 @@ members = [
   "patterns/kx-03-hpke-hybrid-envelope/rust",
   "patterns/kx-01-hybrid-tls/rust",
   "patterns/hash-02-hkdf-key-derivation/rust",
+  "patterns/hash-03-password-hashing/rust",
   "patterns/kx-02-hybrid-mtls/rust",
   "patterns/sess-02-mldsa-signed-tokens/rust",
 ]

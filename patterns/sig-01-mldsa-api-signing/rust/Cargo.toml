@@ -1,0 +1,18 @@
+[package]
+name = "sig-01-mldsa-api-signing"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+# RustCrypto ML-DSA: supports FIPS 204 context strings, which aws-lc-rs does
+# not expose yet. Not independently audited; see the pattern README.
+ml-dsa = "0.1.1"
+getrandom = { version = "0.4", features = ["sys_rng"] }
+
+[dev-dependencies]
+hex = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

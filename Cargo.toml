@@ -5,6 +5,7 @@ members = [
   "patterns/sig-01-mldsa-api-signing/rust",
   "patterns/kx-03-hpke-hybrid-envelope/rust",
   "patterns/kx-01-hybrid-tls/rust",
+  "patterns/pki-01-mldsa-certificates/rust",
   "patterns/kx-02-hybrid-mtls/rust",
 ]
 

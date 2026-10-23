@@ -40,6 +40,15 @@ fn sym() {
     let n = Nonce::assume_unique_for_key([0u8; 12]);
     // ok: pqc-sym-static-nonce
     let n = Nonce::assume_unique_for_key(nonce);
+    // ruleid: pqc-sym-static-nonce
+    let n = aws_lc_rs::aead::Nonce::assume_unique_for_key([0u8; 12]);
+    let zero = [0u8; 12];
+    // ruleid: pqc-sym-static-nonce
+    let n = Nonce::assume_unique_for_key(zero);
+    let mut fresh = [0u8; 12];
+    rng.fill(&mut fresh).unwrap();
+    // ok: pqc-sym-static-nonce
+    let n = Nonce::assume_unique_for_key(fresh);
 }
 
 fn tls() {

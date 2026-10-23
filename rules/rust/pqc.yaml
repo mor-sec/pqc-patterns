@@ -131,10 +131,27 @@ rules:
       cwe: "CWE-323: Reusing a Nonce, Key Pair in Encryption"
       category: security
     pattern-either:
+      - pattern: aws_lc_rs::aead::Nonce::assume_unique_for_key([$B; $N])
+      - pattern: ring::aead::Nonce::assume_unique_for_key([$B; $N])
       - pattern: Nonce::assume_unique_for_key([$B; $N])
       - pattern: Nonce::from([$B; $N])
       - pattern: Nonce::from_slice(&[$B; $N])
       - pattern: Nonce::from_slice(b"...")
+      - pattern: Nonce::default()
+      - patterns:
+          - pattern-either:
+              - pattern: Nonce::assume_unique_for_key($V)
+              - pattern: aws_lc_rs::aead::Nonce::assume_unique_for_key($V)
+              - pattern: ring::aead::Nonce::assume_unique_for_key($V)
+          - pattern-inside: |
+              let $V = [$B; $N];
+              ...
+          # Not flagged once anything fills the array through &mut.
+          - pattern-not-inside: |
+              let mut $V = [$B; $N];
+              ...
+              <... &mut $V ...>;
+              ...
 
   - id: pqc-tls-classical-groups
     languages: [rust]

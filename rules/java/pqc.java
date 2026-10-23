@@ -63,6 +63,12 @@ class Fixtures {
     rng.nextBytes(nonce);
     // ok: pqc-sym-static-nonce
     new GCMParameterSpec(128, nonce);
+    // ruleid: pqc-sym-static-nonce
+    new GCMParameterSpec(128, "123456789012".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    // ruleid: pqc-sym-static-nonce
+    new GCMParameterSpec(128, new byte[16], 0, 12);
+    // ruleid: pqc-sym-static-nonce
+    new GCMParameterSpec(128, new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12});
   }
 
   void tls(SSLParameters p) throws Exception {
@@ -88,6 +94,14 @@ class Fixtures {
     p.setEndpointIdentificationAlgorithm(null);
     // ok: pqc-tls-no-verify
     p.setEndpointIdentificationAlgorithm("HTTPS");
+    // ruleid: pqc-tls-no-verify
+    Object v = new org.apache.hc.client5.http.ssl.NoopHostnameVerifier();
+    // ruleid: pqc-tls-no-verify
+    Object t = io.netty.handler.ssl.util.InsecureTrustManagerFactory.INSTANCE;
+    HttpsURLConnection.setDefaultHostnameVerifier(new javax.net.ssl.HostnameVerifier() {
+      // ruleid: pqc-tls-no-verify
+      public boolean verify(String host, javax.net.ssl.SSLSession session) { return true; }
+    });
   }
 
   void hashes() throws Exception {

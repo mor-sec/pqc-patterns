@@ -73,6 +73,25 @@ rules:
       - pattern: '($SK : *mldsa.PrivateKey).Sign($R, $MSG, nil)'
       - pattern: '($SK : *mldsa.PrivateKey).Sign($R, $MSG, &mldsa.Options{})'
       - pattern: '($SK : *mldsa.PrivateKey).SignDeterministic($MSG, nil)'
+      # Semgrep does not infer types from :=, so also match keys made in scope.
+      - patterns:
+          - pattern-either:
+              - pattern: $SK.Sign($R, $MSG, nil)
+              - pattern: $SK.Sign($R, $MSG, &mldsa.Options{})
+              - pattern: $SK.SignDeterministic($MSG, nil)
+          - pattern-either:
+              - pattern-inside: |
+                  $SK, $E := mldsa.GenerateKey(...)
+                  ...
+              - pattern-inside: |
+                  $SK, $E := mldsa.NewPrivateKey(...)
+                  ...
+              - pattern-inside: |
+                  $SK, $E = mldsa.GenerateKey(...)
+                  ...
+              - pattern-inside: |
+                  $SK, $E = mldsa.NewPrivateKey(...)
+                  ...
 
   - id: pqc-sym-unauthenticated-mode
     languages: [go]
@@ -130,11 +149,33 @@ rules:
       cwe: "CWE-323: Reusing a Nonce, Key Pair in Encryption"
       category: security
     pattern-either:
-      - pattern: '($A : cipher.AEAD).Seal($DST, make([]byte, $N), ...)'
-      - pattern: '($A : cipher.AEAD).Seal($DST, []byte{...}, ...)'
-      - pattern: '($A : cipher.AEAD).Seal($DST, []byte("..."), ...)'
+      # Untyped, because Semgrep does not infer cipher.AEAD from gcm, _ := cipher.NewGCM(...).
+      # Seal(dst, nonce, plaintext, additionalData) is the cipher.AEAD shape.
+      - pattern: $A.Seal($DST, make([]byte, $N), $PT, $AD)
+      - pattern: $A.Seal($DST, []byte{...}, $PT, $AD)
+      - pattern: $A.Seal($DST, []byte("..."), $PT, $AD)
       - patterns:
-          - pattern: '($A : cipher.AEAD).Seal($DST, $NONCE, ...)'
+          - pattern: $A.Seal($DST, $NONCE[:], $PT, $AD)
+          - pattern-inside: |
+              var $NONCE [$N]byte
+              ...
+          - pattern-not-inside: |
+              var $NONCE [$N]byte
+              ...
+              $RAND.Read($NONCE[:])
+              ...
+          - pattern-not-inside: |
+              var $NONCE [$N]byte
+              ...
+              $X, $ERR := $RAND.Read($NONCE[:])
+              ...
+          - pattern-not-inside: |
+              var $NONCE [$N]byte
+              ...
+              $X, $ERR := io.ReadFull($R, $NONCE[:])
+              ...
+      - patterns:
+          - pattern: $A.Seal($DST, $NONCE, $PT, $AD)
           - pattern-inside: |
               $NONCE := make([]byte, $N)
               ...

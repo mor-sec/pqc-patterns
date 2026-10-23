@@ -99,7 +99,7 @@ rules:
     languages: [java]
     severity: ERROR
     message: >-
-      GCM nonce is a fresh all-zero array. Reusing a GCM nonce with the same key
+      GCM nonce is an all-zero or constant array. Reusing a GCM nonce with the same key
       leaks the authentication key and plaintext. Fill the nonce from SecureRandom
       for every message.
     metadata:
@@ -109,6 +109,9 @@ rules:
       category: security
     pattern-either:
       - pattern: new javax.crypto.spec.GCMParameterSpec($T, new byte[$N])
+      - pattern: new javax.crypto.spec.GCMParameterSpec($T, new byte[$N], $OFF, $LEN)
+      - pattern: new javax.crypto.spec.GCMParameterSpec($T, new byte[] {...})
+      - pattern: new javax.crypto.spec.GCMParameterSpec($T, "$S".getBytes(...))
       - patterns:
           - pattern: new javax.crypto.spec.GCMParameterSpec($T, $IV)
           - pattern-inside: |
@@ -175,6 +178,14 @@ rules:
       - pattern: |
           void checkServerTrusted(...) { }
       - pattern: org.apache.http.conn.ssl.NoopHostnameVerifier.INSTANCE
+      - pattern: new org.apache.http.conn.ssl.NoopHostnameVerifier()
+      - pattern: org.apache.hc.client5.http.ssl.NoopHostnameVerifier.INSTANCE
+      - pattern: new org.apache.hc.client5.http.ssl.NoopHostnameVerifier()
+      - pattern: org.apache.http.conn.ssl.TrustAllStrategy.INSTANCE
+      - pattern: org.apache.hc.client5.http.ssl.TrustAllStrategy.INSTANCE
+      - pattern: io.netty.handler.ssl.util.InsecureTrustManagerFactory.INSTANCE
+      - pattern: |
+          boolean verify(String $H, javax.net.ssl.SSLSession $S) { return true; }
 
   - id: pqc-hash-weak
     languages: [java]

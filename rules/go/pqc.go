@@ -48,6 +48,31 @@ func sigs(sk *mldsa.PrivateKey, pk *mldsa.PublicKey, msg, sig []byte) {
 	mldsa.Verify(pk, msg, sig, &mldsa.Options{Context: "app/v1"})
 }
 
+// Keys and AEADs declared with := have no type annotation for Semgrep.
+func inferred(key, msg, pt []byte) {
+	k, err := mldsa.GenerateKey(mldsa.MLDSA65())
+	_ = err
+	// ruleid: pqc-sig-mldsa-no-context
+	k.Sign(rand.Reader, msg, nil)
+	// ok: pqc-sig-mldsa-no-context
+	k.Sign(rand.Reader, msg, &mldsa.Options{Context: "app/v1"})
+
+	block, _ := aes.NewCipher(key)
+	aead, _ := cipher.NewGCM(block)
+	zero := make([]byte, aead.NonceSize())
+	// ruleid: pqc-sym-static-nonce
+	aead.Seal(zero, zero, pt, nil)
+	// ruleid: pqc-sym-static-nonce
+	aead.Seal(nil, make([]byte, 12), pt, nil)
+	var arr [12]byte
+	// ruleid: pqc-sym-static-nonce
+	aead.Seal(nil, arr[:], pt, nil)
+	var good [12]byte
+	rand.Read(good[:])
+	// ok: pqc-sym-static-nonce
+	aead.Seal(nil, good[:], pt, nil)
+}
+
 func sym(key []byte, gcm cipher.AEAD, pt []byte) {
 	block, _ := aes.NewCipher(key)
 	// ruleid: pqc-sym-unauthenticated-mode

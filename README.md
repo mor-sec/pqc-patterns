@@ -19,6 +19,7 @@ Read it as a website, with a migration guide, at **[mor-sec.github.io/pqc-patter
 
 | ID | Pattern | Go | Rust | Java |
 | --- | --- | --- | --- | --- |
+| [HASH-02](patterns/hash-02-hkdf-key-derivation/) | Deriving purpose-bound keys with HKDF | stdlib | aws-lc-rs | Bouncy Castle |
 | [KX-01](patterns/kx-01-hybrid-tls/) | Hybrid post-quantum TLS 1.3 | stdlib | rustls + aws-lc-rs | Bouncy Castle JSSE |
 | [KX-02](patterns/kx-02-hybrid-mtls/) | Mutual TLS between services | stdlib | rustls + aws-lc-rs | Bouncy Castle JSSE |
 | [KX-03](patterns/kx-03-hpke-hybrid-envelope/) | Hybrid envelope encryption with HPKE | stdlib | hpke-rs + libcrux | Bouncy Castle |

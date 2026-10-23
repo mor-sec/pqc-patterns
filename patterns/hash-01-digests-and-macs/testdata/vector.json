@@ -1,0 +1,16 @@
+{
+  "data": "7071632d7061747465726e7320484153482d303120766563746f72",
+  "sums": {
+    "sha256": "sha256-6+D/8Z+pc8uzDpudBV3KLQf95mR/VHP3Vz63TD16czc=",
+    "sha384": "sha384-SKSszpAwZW5ccRXSvdr0de5g/F4HmbXTNpSQhZAV1CsC028o2/MJOk8CoiT3LcEa",
+    "sha512": "sha512-/DgH6h7CiAzXM7y7l51+oXlMEnEr/PIDZCi2I6/t58vxAIiYfHSWscM4cO11waphG4sWrlgbErjkDZQjqtus+Q=="
+  },
+  "hmac_key": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+  "hmac_msg": "504f5354202f76312f6578706f7274732074656e616e742d3432",
+  "hmac_tag": "2355abc93cf8bcc68c6bb8e63acf76d437d374372794ba1320953a0cfce3fa0ca468ba263e129d812eae3f8f67f596b4",
+  "reject": [
+    "md5-8UluffduvnytMbUotXNMMg==",
+    "SHA384-SKSszpAwZW5ccRXSvdr0de5g/F4HmbXTNpSQhZAV1CsC028o2/MJOk8CoiT3LcEa",
+    "sha384-SKSszpAwZW5ccRXSvdr0de5g/F4HmbXTNpSQhZAV1CsC028o2/MJOk8CoiT3LcEa="
+  ]
+}

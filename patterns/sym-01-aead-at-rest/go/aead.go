@@ -16,6 +16,8 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"math"
+	"sync"
 )
 
 const (
@@ -32,8 +34,10 @@ const (
 var ErrDecrypt = errors.New("aead: decryption failed")
 
 // Keyring holds the active key used for new encryptions plus older keys that
-// may still be needed to decrypt existing data during rotation.
+// may still be needed to decrypt existing data during rotation. It is safe
+// for concurrent use, so keys can be added and rotated while serving traffic.
 type Keyring struct {
+	mu       sync.RWMutex
 	activeID uint32
 	keys     map[uint32]cipher.AEAD
 }
@@ -53,9 +57,6 @@ func (k *Keyring) Add(id uint32, key []byte) error {
 	if len(key) != KeySize {
 		return fmt.Errorf("aead: key must be %d bytes, got %d", KeySize, len(key))
 	}
-	if _, exists := k.keys[id]; exists {
-		return fmt.Errorf("aead: key ID %d already present", id)
-	}
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return err
@@ -64,12 +65,19 @@ func (k *Keyring) Add(id uint32, key []byte) error {
 	if err != nil {
 		return err
 	}
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	if _, exists := k.keys[id]; exists {
+		return fmt.Errorf("aead: key ID %d already present", id)
+	}
 	k.keys[id] = gcm
 	return nil
 }
 
 // Rotate makes an already-added key the active key for new encryptions.
 func (k *Keyring) Rotate(id uint32) error {
+	k.mu.Lock()
+	defer k.mu.Unlock()
 	if _, ok := k.keys[id]; !ok {
 		return fmt.Errorf("aead: unknown key ID %d", id)
 	}
@@ -92,10 +100,16 @@ func NewKey() []byte {
 // Nonces are random, so a single key must not encrypt more than 2^32
 // messages. Rotate well before that.
 func (k *Keyring) Encrypt(plaintext, associatedData []byte) ([]byte, error) {
-	gcm := k.keys[k.activeID]
+	if uint64(len(associatedData)) > math.MaxUint32 {
+		return nil, errors.New("aead: associated data too long")
+	}
+	k.mu.RLock()
+	id := k.activeID
+	gcm := k.keys[id]
+	k.mu.RUnlock()
 	out := make([]byte, headerLen+NonceSize, overhead+len(plaintext))
 	out[0] = Version
-	binary.BigEndian.PutUint32(out[1:headerLen], k.activeID)
+	binary.BigEndian.PutUint32(out[1:headerLen], id)
 	if _, err := rand.Read(out[headerLen:]); err != nil {
 		return nil, err
 	}
@@ -105,10 +119,12 @@ func (k *Keyring) Encrypt(plaintext, associatedData []byte) ([]byte, error) {
 
 // Decrypt verifies and opens a blob produced by Encrypt in any language.
 func (k *Keyring) Decrypt(blob, associatedData []byte) ([]byte, error) {
-	if len(blob) < overhead || blob[0] != Version {
+	if len(blob) < overhead || blob[0] != Version || uint64(len(associatedData)) > math.MaxUint32 {
 		return nil, ErrDecrypt
 	}
+	k.mu.RLock()
 	gcm, ok := k.keys[binary.BigEndian.Uint32(blob[1:headerLen])]
+	k.mu.RUnlock()
 	if !ok {
 		return nil, ErrDecrypt
 	}

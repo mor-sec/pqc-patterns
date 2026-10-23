@@ -51,7 +51,7 @@ fn vector() -> Vector {
 fn opens_go_vector() {
     let v = vector();
     let h = |s: &str| hex::decode(s).unwrap();
-    let sk = load_private_key(&h(&v.private_key));
+    let sk = load_private_key(&h(&v.private_key)).unwrap();
     assert_eq!(
         open(&sk, &h(&v.info), &h(&v.aad), &h(&v.message)).unwrap(),
         h(&v.plaintext)
@@ -64,9 +64,20 @@ fn seals_to_go_vector_key() {
     // this crate's encapsulation matches the key format other languages publish.
     let v = vector();
     let h = |s: &str| hex::decode(s).unwrap();
-    let msg = seal(&load_public_key(&h(&v.public_key)), INFO, b"", b"rust to anyone");
+    let msg = seal(
+        &load_public_key(&h(&v.public_key)).unwrap(),
+        INFO,
+        b"",
+        b"rust to anyone",
+    );
     assert_eq!(
-        open(&load_private_key(&h(&v.private_key)), INFO, b"", &msg).unwrap(),
+        open(&load_private_key(&h(&v.private_key)).unwrap(), INFO, b"", &msg).unwrap(),
         b"rust to anyone"
     );
+}
+
+#[test]
+fn rejects_wrong_key_lengths() {
+    assert!(load_public_key(&[0u8; PUBLIC_KEY_LEN - 1]).is_none());
+    assert!(load_private_key(&[0u8; 64]).is_none());
 }

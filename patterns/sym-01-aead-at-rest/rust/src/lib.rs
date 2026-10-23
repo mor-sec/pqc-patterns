@@ -127,7 +127,8 @@ pub fn new_key() -> [u8; KEY_SIZE] {
 fn aad(header: &[u8], associated_data: &[u8]) -> Vec<u8> {
     let mut out = Vec::with_capacity(header.len() + 4 + associated_data.len());
     out.extend_from_slice(header);
-    out.extend_from_slice(&(associated_data.len() as u32).to_be_bytes());
+    let len = u32::try_from(associated_data.len()).expect("associated data of 4 GiB or more");
+    out.extend_from_slice(&len.to_be_bytes());
     out.extend_from_slice(associated_data);
     out
 }

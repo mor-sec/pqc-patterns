@@ -36,6 +36,14 @@ srv := &http.Server{TLSConfig: hybridtls.ServerConfig(cert, hybridtls.Strict)}
 if err := hybridtls.RequireHybrid(conn.ConnectionState()); err != nil { metrics.ClassicalTLS.Inc() }
 ```
 
+In Java the policy lives in `SSLParameters`, not in the `SSLContext`, so apply it to every socket or engine. A socket from `ctx.getSocketFactory()` without these parameters allows TLS 1.2 and does not check the hostname.
+
+```java
+SSLContext ctx = HybridTls.context(null, trustManagers);
+SSLSocket s = (SSLSocket) ctx.getSocketFactory().createSocket("api.internal", 443);
+s.setSSLParameters(HybridTls.parameters(Mode.STRICT)); // TLS 1.3, hybrid groups, hostname check
+```
+
 Tests run real handshakes and check that:
 
 - Strict client and server negotiate `X25519MLKEM768`.

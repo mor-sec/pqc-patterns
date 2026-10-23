@@ -20,6 +20,8 @@ pub const AEAD_ID: u16 = 0x0002;
 /// ML-KEM-768 ciphertext (1088 bytes) followed by the X25519 share (32 bytes).
 pub const ENC_LEN: usize = 1120;
 const SUITE_LEN: usize = 6;
+pub const PUBLIC_KEY_LEN: usize = 1216;
+pub const PRIVATE_KEY_LEN: usize = 32;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct OpenError;
@@ -50,12 +52,14 @@ pub fn generate_key() -> (HpkePrivateKey, HpkePublicKey) {
         .into_keys()
 }
 
-pub fn load_private_key(seed: &[u8]) -> HpkePrivateKey {
-    HpkePrivateKey::new(seed.to_vec())
+/// Restores a private key from its 32-byte seed. Returns `None` for any other length.
+pub fn load_private_key(seed: &[u8]) -> Option<HpkePrivateKey> {
+    (seed.len() == PRIVATE_KEY_LEN).then(|| HpkePrivateKey::new(seed.to_vec()))
 }
 
-pub fn load_public_key(bytes: &[u8]) -> HpkePublicKey {
-    HpkePublicKey::new(bytes.to_vec())
+/// Decodes a 1216-byte X-Wing public key. Returns `None` for any other length.
+pub fn load_public_key(bytes: &[u8]) -> Option<HpkePublicKey> {
+    (bytes.len() == PUBLIC_KEY_LEN).then(|| HpkePublicKey::new(bytes.to_vec()))
 }
 
 /// Encrypts `plaintext` to `recipient`. `info` names the application and

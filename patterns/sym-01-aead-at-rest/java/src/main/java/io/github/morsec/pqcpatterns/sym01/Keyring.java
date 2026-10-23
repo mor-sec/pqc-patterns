@@ -4,8 +4,8 @@ import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
@@ -22,7 +22,8 @@ import javax.crypto.spec.SecretKeySpec;
  * </pre>
  *
  * <p>The 5-byte header and the caller's associated data are both authenticated. Uses only the
- * JDK's built-in provider.
+ * JDK's built-in provider. Safe for concurrent use, so keys can be added and rotated while
+ * serving traffic.
  */
 public final class Keyring {
   public static final byte VERSION = 0x01;
@@ -35,8 +36,8 @@ public final class Keyring {
   private static final int OVERHEAD = HEADER_LEN + NONCE_LEN + TAG_BITS / 8;
   private static final SecureRandom RANDOM = new SecureRandom();
 
-  private final Map<Integer, SecretKey> keys = new HashMap<>();
-  private int activeId;
+  private final Map<Integer, SecretKey> keys = new ConcurrentHashMap<>();
+  private volatile int activeId;
 
   /** Thrown for every authentication or format failure, so callers cannot learn why. */
   public static final class DecryptException extends Exception {
@@ -57,10 +58,9 @@ public final class Keyring {
     if (key.length != KEY_SIZE) {
       throw new IllegalArgumentException("key must be " + KEY_SIZE + " bytes, got " + key.length);
     }
-    if (keys.containsKey(id)) {
+    if (keys.putIfAbsent(id, new SecretKeySpec(key, "AES")) != null) {
       throw new IllegalArgumentException("key ID " + id + " already present");
     }
-    keys.put(id, new SecretKeySpec(key, "AES"));
   }
 
   /** Makes an already-added key the active key for new encryptions. */
@@ -86,10 +86,11 @@ public final class Keyring {
   public byte[] encrypt(byte[] plaintext, byte[] associatedData) throws GeneralSecurityException {
     byte[] nonce = new byte[NONCE_LEN];
     RANDOM.nextBytes(nonce);
-    byte[] header = ByteBuffer.allocate(HEADER_LEN).put(VERSION).putInt(activeId).array();
+    int id = activeId;
+    byte[] header = ByteBuffer.allocate(HEADER_LEN).put(VERSION).putInt(id).array();
 
     Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
-    c.init(Cipher.ENCRYPT_MODE, keys.get(activeId), new GCMParameterSpec(TAG_BITS, nonce));
+    c.init(Cipher.ENCRYPT_MODE, keys.get(id), new GCMParameterSpec(TAG_BITS, nonce));
     c.updateAAD(aad(header, associatedData));
     byte[] body = c.doFinal(plaintext);
 

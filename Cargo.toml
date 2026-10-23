@@ -9,6 +9,7 @@ members = [
   "patterns/hash-03-password-hashing/rust",
   "patterns/pki-01-mldsa-certificates/rust",
   "patterns/kx-02-hybrid-mtls/rust",
+  "patterns/sess-01-opaque-session-tokens/rust",
   "patterns/sess-02-mldsa-signed-tokens/rust",
 ]
 

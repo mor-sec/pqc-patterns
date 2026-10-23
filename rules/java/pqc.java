@@ -1,6 +1,8 @@
 import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import javax.crypto.Cipher;
 import javax.crypto.KeyAgreement;
 import javax.crypto.KeyGenerator;
@@ -8,9 +10,34 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.HttpsURLConnection;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.bouncycastle.crypto.hpke.HPKE;
 
 class Fixtures {
+  String newSessionToken() {
+    // ruleid: pqc-token-weak-random
+    Random r = new Random();
+    // ruleid: pqc-token-weak-random
+    return Long.toHexString(r.nextLong());
+  }
+
+  void randomness() {
+    // ruleid: pqc-token-weak-random
+    long apiKey = ThreadLocalRandom.current().nextLong();
+    // ruleid: pqc-token-weak-random
+    String csrfToken = RandomStringUtils.randomAlphanumeric(32);
+    // ok: pqc-token-weak-random
+    String resetToken = RandomStringUtils.secure().nextAlphanumeric(32);
+    SecureRandom sr = new SecureRandom();
+    byte[] nonce = new byte[12];
+    // ok: pqc-token-weak-random
+    sr.nextBytes(nonce);
+    // ok: pqc-token-weak-random
+    double jitter = Math.random();
+    // ok: pqc-token-weak-random
+    int delay = new Random().nextInt(100);
+  }
+
   void kx() throws Exception {
     // ruleid: pqc-kx-rsa-encrypt
     Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");

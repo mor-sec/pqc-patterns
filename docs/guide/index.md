@@ -21,7 +21,7 @@ So the order of work is: key exchange and encryption first, long-lived signing k
 1. **Find what you have.** Run the [checker](../checker.md) over your code, and log the negotiated TLS group on your endpoints (see [KX-01](../patterns/kx-01-hybrid-tls.md)). [Planning a migration](migration.md) covers the rest of the inventory.
 2. **Turn on hybrid TLS.** [KX-01](../patterns/kx-01-hybrid-tls.md) for any endpoint and [KX-02](../patterns/kx-02-hybrid-mtls.md) for mutual TLS between services. Most current TLS stacks support it, and it protects recorded traffic immediately.
 3. **Fix stored and enveloped data.** [KX-03](../patterns/kx-03-hpke-hybrid-envelope.md) replaces RSA-OAEP and ECIES for encrypting to a public key. [SYM-01](../patterns/sym-01-aead-at-rest.md) covers data at rest.
-4. **Move signatures, starting with long-lived ones.** [SIG-01](../patterns/sig-01-mldsa-api-signing.md) signs API requests, [SESS-02](../patterns/sess-02-mldsa-signed-tokens.md) signs bearer tokens, and [PKI-01](../patterns/pki-01-mldsa-certificates.md) moves certificates and TLS authentication to ML-DSA.
+4. **Move signatures, starting with long-lived ones.** [SIG-01](../patterns/sig-01-mldsa-api-signing.md) signs API requests, [SESS-02](../patterns/sess-02-mldsa-signed-tokens.md) signs bearer tokens ([SESS-01](../patterns/sess-01-opaque-session-tokens.md) avoids signatures altogether for browser sessions), and [PKI-01](../patterns/pki-01-mldsa-certificates.md) moves certificates and TLS authentication to ML-DSA.
 
 ## How to read a pattern page
 

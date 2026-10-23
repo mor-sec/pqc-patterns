@@ -8,7 +8,7 @@ Issue and verify short-lived bearer tokens, such as access tokens between servic
 
 - Access tokens issued by an authorisation service and checked by many resource servers.
 - Service-to-service tokens that must pass through proxies, where mTLS (KX-02) alone does not carry the caller's identity far enough.
-- Do **not** use it for browser sessions. An ML-DSA-65 token is about 4.6 KB, which is over the 4 KB cookie limit. Use an opaque random session ID stored server-side (SESS-01, planned).
+- Do **not** use it for browser sessions. An ML-DSA-65 token is about 4.6 KB, which is over the 4 KB cookie limit. Use an opaque random session ID stored server-side ([SESS-01](../sess-01-opaque-session-tokens/)).
 - Use SIG-01 when you need to sign a whole request (method, path, body) rather than carry claims.
 
 ## Recommended construction

@@ -40,8 +40,10 @@ nav:
   - Home: index.md
   - Guide:
       - Start here: guide/index.md
+      - The quantum problem: guide/quantum-threat.md
       - Choosing algorithms: guide/algorithms.md
       - Planning a migration: guide/migration.md
+      - Glossary: guide/glossary.md
   - Patterns: []   # filled in by tools/docs_hooks.py
   - Checker: checker.md
 

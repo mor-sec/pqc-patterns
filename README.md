@@ -26,6 +26,7 @@ Read it as a website, with a migration guide, at **[mor-sec.github.io/pqc-patter
 | [KX-02](patterns/kx-02-hybrid-mtls/) | Mutual TLS between services | stdlib | rustls + aws-lc-rs | Bouncy Castle JSSE |
 | [KX-03](patterns/kx-03-hpke-hybrid-envelope/) | Hybrid envelope encryption with HPKE | stdlib | hpke-rs + libcrux | Bouncy Castle |
 | [PKI-01](patterns/pki-01-mldsa-certificates/) | ML-DSA certificates and fully post-quantum TLS | not yet (no ML-DSA in `crypto/x509`) | rustls + rcgen | Bouncy Castle JSSE |
+| [SESS-01](patterns/sess-01-opaque-session-tokens/) | Opaque session tokens and cookies | stdlib | aws-lc-rs | JDK |
 | [SESS-02](patterns/sess-02-mldsa-signed-tokens/) | Signed bearer tokens (JWS) with ML-DSA | stdlib | RustCrypto ml-dsa | Bouncy Castle + Jackson |
 | [SIG-01](patterns/sig-01-mldsa-api-signing/) | Signing API requests with ML-DSA | stdlib | RustCrypto ml-dsa | Bouncy Castle |
 | [SIG-02](patterns/sig-02-artifact-signing/) | Signing release artifacts with ML-DSA | stdlib | RustCrypto ml-dsa | Bouncy Castle |

@@ -24,6 +24,7 @@ jobs:
           - hash-02-hkdf-key-derivation
           - hash-03-password-hashing
           - kx-02-hybrid-mtls
+          - sess-01-opaque-session-tokens
           - sess-02-mldsa-signed-tokens
           - sym-03-streaming-encryption
     defaults:

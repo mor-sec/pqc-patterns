@@ -1,0 +1,18 @@
+{
+  "token": "sess_y1f9RDs6loPYvonF8wjZXJe4UOgHJCA03Jzc0V57enk",
+  "session_id": "30046ff7168c78ed0ec920c4da31c896523427f63bb13e800044119353b2207f",
+  "invalid_tokens": [
+    "",
+    "y1f9RDs6loPYvonF8wjZXJe4UOgHJCA03Jzc0V57enk",
+    "SESS_y1f9RDs6loPYvonF8wjZXJe4UOgHJCA03Jzc0V57enk",
+    "sess_y1f9RDs6loPYvonF8wjZXJe4UOgHJCA03Jzc0V57enk=",
+    "sess_y1f9RDs6loPYvonF8wjZXJe4UOgHJCA03Jzc0V57en",
+    "sess_y1f9RDs6loPYvonF8wjZXJe4UOgHJCA03Jzc0V57enkA",
+    "sess_+1f9RDs6loPYvonF8wjZXJe4UOgHJCA03Jzc0V57enk",
+    "sess_/1f9RDs6loPYvonF8wjZXJe4UOgHJCA03Jzc0V57enk",
+    "sess_ 1f9RDs6loPYvonF8wjZXJe4UOgHJCA03Jzc0V57enk",
+    "sess_y1f9RDs6loPYvonF8wjZXJe4UOgHJCA03Jzc0V57enl"
+  ],
+  "set_cookie": "__Host-session=sess_y1f9RDs6loPYvonF8wjZXJe4UOgHJCA03Jzc0V57enk; Path=/; HttpOnly; Secure; SameSite=Lax",
+  "clear_cookie": "__Host-session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax"
+}

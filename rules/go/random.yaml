@@ -1,0 +1,60 @@
+# Kept apart from pqc.yaml because its fixture needs math/rand imported
+# without an alias, which pqc.go cannot do alongside crypto/rand.
+rules:
+  - id: pqc-token-weak-random
+    languages: [go]
+    severity: ERROR
+    message: >-
+      A token, key, nonce or salt is generated with math/rand, which is predictable.
+      Use crypto/rand, for example 32 bytes from crypto/rand.Read in base64url
+      for session tokens (pattern SESS-01).
+    metadata:
+      pattern: SESS-01
+      docs: patterns/sess-01-opaque-session-tokens/README.md
+      cwe: "CWE-338: Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG)"
+      category: security
+    patterns:
+      - pattern-either:
+          # math/rand imported as "rand", with crypto/rand absent or aliased.
+          - patterns:
+              - pattern-inside: |
+                  import "math/rand"
+                  ...
+              - pattern-not-inside: |
+                  import "crypto/rand"
+                  ...
+              - pattern: rand.$F(...)
+          - patterns:
+              - pattern-inside: |
+                  import "math/rand"
+                  ...
+              - pattern-inside: |
+                  import $C "crypto/rand"
+                  ...
+              - pattern: rand.$F(...)
+              - pattern-not: $C.$F(...)
+          # math/rand or math/rand/v2 under an alias.
+          - patterns:
+              - pattern-either:
+                  - pattern-inside: |
+                      import $A "math/rand"
+                      ...
+                  - pattern-inside: |
+                      import $A "math/rand/v2"
+                      ...
+              - pattern: $A.$F(...)
+      # Only where the value is clearly a secret, so jitter and shuffles stay quiet.
+      - pattern-either:
+          - patterns:
+              - pattern-inside: |
+                  func $FN(...) { ... }
+              - metavariable-regex:
+                  metavariable: $FN
+                  regex: (?i).*(token|session|secret|nonce|salt|otp|password|passwd|apikey|api_key|csrf).*
+          - patterns:
+              - pattern-either:
+                  - pattern-inside: $V := <... $E ...>
+                  - pattern-inside: $V = <... $E ...>
+              - metavariable-regex:
+                  metavariable: $V
+                  regex: (?i).*(token|session|secret|nonce|salt|otp|password|passwd|apikey|api_key|csrf|key).*

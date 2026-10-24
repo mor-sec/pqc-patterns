@@ -20,7 +20,7 @@ In practice the order is usually:
 
 1. TLS key exchange on all endpoints. Low effort, and it protects recorded traffic immediately.
 2. Public-key encryption of stored data and messages.
-3. Long-lived signing keys: roots, firmware and code signing.
+3. Long-lived signing keys: roots, firmware and code signing ([SIG-02](../patterns/sig-02-artifact-signing.md)).
 4. Everything else that signs: API requests, tokens, service certificates.
 
 ## 3. Build in agility

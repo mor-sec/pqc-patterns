@@ -3,6 +3,7 @@ resolver = "3"
 members = [
   "patterns/sym-01-aead-at-rest/rust",
   "patterns/sig-01-mldsa-api-signing/rust",
+  "patterns/sig-02-artifact-signing/rust",
   "patterns/kx-03-hpke-hybrid-envelope/rust",
   "patterns/key-01-pqc-key-storage/rust",
   "patterns/kx-01-hybrid-tls/rust",

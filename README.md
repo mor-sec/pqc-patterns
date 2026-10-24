@@ -30,6 +30,7 @@ Read it as a website, with a migration guide, at **[mor-sec.github.io/pqc-patter
 | [SESS-01](patterns/sess-01-opaque-session-tokens/) | Opaque session tokens and cookies | stdlib | aws-lc-rs | JDK |
 | [SESS-02](patterns/sess-02-mldsa-signed-tokens/) | Signed bearer tokens (JWS) with ML-DSA | stdlib | RustCrypto ml-dsa | Bouncy Castle + Jackson |
 | [SIG-01](patterns/sig-01-mldsa-api-signing/) | Signing API requests with ML-DSA | stdlib | RustCrypto ml-dsa | Bouncy Castle |
+| [SIG-02](patterns/sig-02-artifact-signing/) | Signing release artifacts with ML-DSA | stdlib | RustCrypto ml-dsa | Bouncy Castle |
 | [SYM-01](patterns/sym-01-aead-at-rest/) | Authenticated encryption at rest | stdlib | aws-lc-rs | JDK |
 | [SYM-03](patterns/sym-03-streaming-encryption/) | Streaming and large-file encryption | stdlib | aws-lc-rs | JDK + Bouncy Castle |
 

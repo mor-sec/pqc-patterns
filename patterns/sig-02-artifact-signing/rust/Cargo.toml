@@ -1,0 +1,20 @@
+[package]
+name = "sig-02-artifact-signing"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+# RustCrypto ML-DSA, as in SIG-01: supports FIPS 204 context strings. Not
+# independently audited; see the SIG-01 README.
+ml-dsa = "0.1.1"
+getrandom = { version = "0.4", features = ["sys_rng"] }
+aws-lc-rs = "1.18"
+base64 = "0.22"
+
+[dev-dependencies]
+hex = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

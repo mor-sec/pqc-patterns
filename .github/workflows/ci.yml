@@ -19,6 +19,7 @@ jobs:
           - sig-01-mldsa-api-signing
           - sig-02-artifact-signing
           - kx-03-hpke-hybrid-envelope
+          - key-01-pqc-key-storage
           - kx-01-hybrid-tls
           - hash-01-digests-and-macs
           - hash-02-hkdf-key-derivation

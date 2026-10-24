@@ -29,6 +29,7 @@ You will change algorithms again, whether for a newer standard, a bigger paramet
 
 - Wire formats carry a version or algorithm identifier, such as the key ID in [SYM-01](../patterns/sym-01-aead-at-rest.md) and the versioned context string in [SIG-01](../patterns/sig-01-mldsa-api-signing.md), and the parameters stored in every password hash in [HASH-03](../patterns/hash-03-password-hashing.md).
 - Verifiers accept a set of keys, so you can rotate without a flag day.
+- Keys are stored in standard PKCS#8 and SubjectPublicKeyInfo, which name their algorithm, and are referred to by a key ID derived from the public key ([KEY-01](../patterns/key-01-pqc-key-storage.md)).
 - Algorithm choices live in one function per pattern, not spread across call sites.
 
 ## 4. Roll out

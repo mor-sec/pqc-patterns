@@ -49,6 +49,15 @@ fn sym() {
     rng.fill(&mut fresh).unwrap();
     // ok: pqc-sym-static-nonce
     let n = Nonce::assume_unique_for_key(fresh);
+    let mut counter = [0u8; 12];
+    counter[..7].copy_from_slice(&prefix);
+    counter[11] = last as u8;
+    // ok: pqc-sym-static-nonce
+    let n = Nonce::assume_unique_for_key(counter);
+    let mut indexed = [0u8; 12];
+    indexed[11] = 1;
+    // ok: pqc-sym-static-nonce
+    let n = Nonce::assume_unique_for_key(indexed);
 }
 
 fn tls() {

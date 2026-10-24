@@ -21,6 +21,7 @@
     <module>patterns/pki-01-mldsa-certificates/java</module>
     <module>patterns/sess-01-opaque-session-tokens/java</module>
     <module>patterns/sess-02-mldsa-signed-tokens/java</module>
+    <module>patterns/sym-03-streaming-encryption/java</module>
   </modules>
 
   <properties>

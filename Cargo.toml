@@ -12,6 +12,7 @@ members = [
   "patterns/kx-02-hybrid-mtls/rust",
   "patterns/sess-01-opaque-session-tokens/rust",
   "patterns/sess-02-mldsa-signed-tokens/rust",
+  "patterns/sym-03-streaming-encryption/rust",
 ]
 
 [workspace.package]

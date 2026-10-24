@@ -289,6 +289,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a878c850e9e421b20262e9b41f9c860e4785fa07541c266b62ff9d1ef998a80a"
 dependencies = [
  "const-oid",
+ "pem-rfc7468",
  "zeroize",
 ]
 
@@ -624,6 +625,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "kem"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "01737161ba802849cfd486b5bd209d38ba4943494c249a8126005170c7621edd"
+dependencies = [
+ "crypto-common",
+ "rand_core",
+]
+
+[[package]]
+name = "key-01-pqc-key-storage"
+version = "0.1.0"
+dependencies = [
+ "aws-lc-rs",
+ "getrandom 0.4.3",
+ "hex",
+ "ml-dsa",
+ "ml-kem",
+ "pkcs8",
+ "serde",
+ "serde_json",
+ "zeroize",
+]
+
+[[package]]
 name = "kx-01-hybrid-tls"
 version = "0.1.0"
 dependencies = [
@@ -946,6 +972,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "ml-kem"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9ba01ebcf90f6aff8e9b9f55bb69b19e6250e4ade5787d0040eaa27dd226238"
+dependencies = [
+ "const-oid",
+ "hybrid-array",
+ "kem",
+ "module-lattice",
+ "pkcs8",
+ "rand_core",
+ "sha3",
+ "shake",
+]
+
+[[package]]
 name = "module-lattice"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1039,6 +1081,15 @@ checksum = "1d30c53c26bc5b31a98cd02d20f25a7c8567146caf63ed593a9d87b2775291be"
 dependencies = [
  "base64",
  "serde_core",
+]
+
+[[package]]
+name = "pem-rfc7468"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a6305423e0e7738146434843d1694d621cce767262b2a86910beab705e4493d9"
+dependencies = [
+ "base64ct",
 ]
 
 [[package]]
@@ -1340,6 +1391,17 @@ dependencies = [
  "ml-dsa",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "sha3"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bc9bad02c26382724b2d2692c6f179285e4b54eeecd7968f52a50059c3c11759"
+dependencies = [
+ "digest",
+ "keccak",
+ "sponge-cursor",
 ]
 
 [[package]]

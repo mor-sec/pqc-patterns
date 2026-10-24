@@ -22,6 +22,7 @@ Read it as a website, with a migration guide, at **[mor-sec.github.io/pqc-patter
 | [HASH-01](patterns/hash-01-digests-and-macs/) | Content digests and MACs | stdlib | aws-lc-rs | JDK |
 | [HASH-02](patterns/hash-02-hkdf-key-derivation/) | Deriving purpose-bound keys with HKDF | stdlib | aws-lc-rs | Bouncy Castle |
 | [HASH-03](patterns/hash-03-password-hashing/) | Storing passwords with Argon2id | x/crypto | RustCrypto argon2 | Bouncy Castle |
+| [KEY-01](patterns/key-01-pqc-key-storage/) | Generating, encoding and storing ML-DSA and ML-KEM keys | stdlib | RustCrypto ml-dsa + ml-kem | Bouncy Castle |
 | [KX-01](patterns/kx-01-hybrid-tls/) | Hybrid post-quantum TLS 1.3 | stdlib | rustls + aws-lc-rs | Bouncy Castle JSSE |
 | [KX-02](patterns/kx-02-hybrid-mtls/) | Mutual TLS between services | stdlib | rustls + aws-lc-rs | Bouncy Castle JSSE |
 | [KX-03](patterns/kx-03-hpke-hybrid-envelope/) | Hybrid envelope encryption with HPKE | stdlib | hpke-rs + libcrux | Bouncy Castle |

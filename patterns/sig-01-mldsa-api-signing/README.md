@@ -20,7 +20,7 @@ Let a service prove that an API request came from a specific caller, was meant f
 | Signed message | Length-prefixed key ID, audience, timestamp, method, path with query, body | Covers everything that changes the request's meaning. Length prefixes stop field-boundary tricks. |
 | Audience | The receiver's own identity, such as `https://payments.internal` | Stops a request signed for one receiver being replayed to another that trusts the same key, for example another webhook tenant or staging. The verifier always uses its configured audience, never one taken from the request. |
 | Freshness | Timestamp within ±5 minutes | Bounds replay to the same receiver. Add a nonce or idempotency-key cache for non-idempotent endpoints. |
-| Private key storage | The 32-byte FIPS 204 seed | Smallest form, and every library here can expand it. |
+| Private key storage | The 32-byte FIPS 204 seed, in seed-only PKCS#8 ([KEY-01](../key-01-pqc-key-storage/)) | Smallest form, and every library here can expand it. |
 
 Hedged (randomised) signing is the default. Signatures over the same request differ, and all of them verify.
 

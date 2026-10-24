@@ -26,11 +26,17 @@ Issue certificates with ML-DSA keys and signatures, and run TLS 1.3 connections 
 
 | Language | Source | Library |
 | --- | --- | --- |
-| Go | Not yet | Go 1.27 has ML-DSA in `crypto/mldsa`, but `crypto/x509` and `crypto/tls` cannot parse or verify ML-DSA certificates yet. This pattern will add Go once they can. |
+| Go | [go/mldsacerts.go](go/mldsacerts.go) | Standard library only, Go 1.27+ (`crypto/mldsa`, `crypto/x509`, `crypto/tls`) |
 | Rust | [rust/src/lib.rs](rust/src/lib.rs) | `rustls` 0.23 and `rustls-webpki` 0.103 with `aws-lc-rs`; `rcgen` 0.14 (`aws_lc_rs_unstable` feature) for keys and requests |
 | Java | [java/.../MlDsaCertificates.java](java/src/main/java/io/github/morsec/pqcpatterns/pki01/MlDsaCertificates.java) | Bouncy Castle 1.86 (`bcpkix` for requests) and Bouncy Castle JSSE 1.86 on Java 21+ |
 
 Create a key and a request for your CA:
+
+```go
+key, _ := mldsacerts.GenerateKey()
+req, _ := mldsacerts.CSR(key, "ledger", []string{"ledger.internal"})
+sendToCA(req)                          // keep x509.MarshalPKCS8PrivateKey(key) in your secret store
+```
 
 ```rust
 let key = pki_01_mldsa_certificates::generate_key()?;
@@ -43,7 +49,20 @@ KeyPair key = MlDsaCertificates.generateKeyPair();
 PKCS10CertificationRequest req = MlDsaCertificates.csr(key, new X500Name("CN=ledger"), List.of("ledger.internal"));
 ```
 
+The Go version includes the CA side, because `crypto/x509` can parse and check ML-DSA requests:
+
+```go
+req, err := mldsacerts.ParseCSR(der)   // checks the request's signature and refuses non-ML-DSA keys
+// ...check the requester may use req.DNSNames...
+cert, err := mldsacerts.Issue(req, caCert, caKey, 30*24*time.Hour)
+```
+
 Then serve and connect with the strict configuration:
+
+```go
+server, err := mldsacerts.ServerConfig([]*x509.Certificate{cert, intermediate}, key) // refuses a non-ML-DSA chain
+client := mldsacerts.ClientConfig(mlDSARoots, "ledger.internal")                   // accepts ML-DSA chains only
+```
 
 ```rust
 let server = server_config(chain, key)?;   // ML-DSA chain from your CA
@@ -60,16 +79,18 @@ As in KX-01, the Java policy lives in `SSLParameters`, so apply it to every sock
 
 Tests run real handshakes with a test CA and check that:
 
-- A fully post-quantum handshake succeeds: ML-DSA chain, ML-DSA handshake signature and `X25519MLKEM768` (Rust checks the group directly; Java offers only hybrid groups).
-- In Java, the CA issues the server certificate from the request, after checking its signature.
+- A fully post-quantum handshake succeeds: ML-DSA chain, ML-DSA handshake signature and `X25519MLKEM768` (Go and Rust check the group directly; Java offers only hybrid groups).
+- In Go and Java, the CA issues the server certificate from the request, after checking its signature. Go also refuses a request whose signature no longer matches, and ECDSA and ML-DSA-44 requests.
 - A classical server certificate is refused.
 - An ML-DSA leaf issued by an ECDSA CA is refused. The Java test makes the client advertise ECDSA in `signature_algorithms_cert` so the server sends that chain, which proves the client checks the chain itself.
 - A chain from a CA the client does not trust is refused.
-- A certificate for the wrong hostname is refused (Java).
+- A certificate for the wrong hostname is refused (Go and Java).
+- A server that offers only a classical key exchange is refused (Go).
 - The request is signed with `id-ml-dsa-65` and carries the requested names.
 
 **Library notes**
 
+- **Go:** `crypto/tls` has no setting for the signature schemes a client offers, and the client always offers classical ones too. So `ClientConfig` installs `RequireMLDSA` as its `VerifyConnection` hook, which fails the handshake unless a verified chain is ML-DSA-65 or ML-DSA-87 at every level, root included. The leaf's ML-DSA key then forces an ML-DSA handshake signature, because TLS 1.3 signs the handshake with the leaf key. One fully ML-DSA chain is enough, so a cross-signed classical path during migration does not break the check. `ServerConfig` refuses a classical chain up front.
 - **Rust:** the pattern restricts the provider's `signature_verification_algorithms` to ML-DSA-65 and ML-DSA-87. rustls uses that list both for the handshake signature and for every certificate in the chain, so one setting covers both. `rcgen` can create ML-DSA keys, requests and certificates, but cannot yet parse ML-DSA requests, so a Rust CA would need another parser.
 - **Java:** signature schemes in `SSLParameters` cover the handshake signature only. The pattern also sets `AlgorithmConstraints` that refuse non-ML-DSA signatures, which Bouncy Castle JSSE applies to every certificate in the peer's chain. `keyManagers` uses Bouncy Castle's PKCS12 key store, because the JDK's needs a JDK ML-DSA implementation (JDK 24+) to read the keys back.
 - **Size:** an ML-DSA-65 certificate is about 5.5 KB, against about 0.5 KB for ECDSA P-256. The Rust test's server flight with one certificate is about 10 KB. With an intermediate it passes 15 KB, more than a typical initial TCP congestion window, which costs an extra round trip. Certificate compression does not help much because keys and signatures are random.
@@ -97,7 +118,7 @@ Tests run real handshakes with a test CA and check that:
 1. Deploy KX-01 first. It protects recorded traffic now, and this pattern builds on it.
 2. Stand up a separate ML-DSA root and intermediate, ideally in an HSM that supports ML-DSA.
 3. Add the ML-DSA root to every client's trust store next to the classical one, and let clients negotiate ML-DSA when the server offers it.
-4. Issue ML-DSA certificates to servers from requests, and serve them to clients that offer ML-DSA signature schemes. Bouncy Castle JSSE does this when its key store holds both a classical and an ML-DSA entry. rustls needs a small `ResolvesServerCert` that checks the ClientHello's signature schemes.
+4. Issue ML-DSA certificates to servers from requests, and serve them to clients that offer ML-DSA signature schemes. Bouncy Castle JSSE does this when its key store holds both a classical and an ML-DSA entry. rustls needs a small `ResolvesServerCert`, and Go a `GetCertificate` callback, that checks the ClientHello's signature schemes.
 5. When every client offers ML-DSA, switch servers and clients to the strict configuration in this pattern and retire the classical CA.
 
 ## References
@@ -106,4 +127,4 @@ Tests run real handshakes with a test CA and check that:
 - [draft-ietf-tls-mldsa](https://datatracker.ietf.org/doc/draft-ietf-tls-mldsa/) (ML-DSA signature schemes for TLS 1.3)
 - [FIPS 204](https://csrc.nist.gov/pubs/fips/204/final) (ML-DSA)
 - [RFC 8446](https://www.rfc-editor.org/rfc/rfc8446) (TLS 1.3), [RFC 2986](https://www.rfc-editor.org/rfc/rfc2986) (PKCS#10)
-- [rustls](https://docs.rs/rustls), [rcgen](https://docs.rs/rcgen), [Bouncy Castle](https://www.bouncycastle.org/)
+- [crypto/x509](https://pkg.go.dev/crypto/x509) and [crypto/tls](https://pkg.go.dev/crypto/tls), [rustls](https://docs.rs/rustls), [rcgen](https://docs.rs/rcgen), [Bouncy Castle](https://www.bouncycastle.org/)

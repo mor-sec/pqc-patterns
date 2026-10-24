@@ -6,7 +6,8 @@ Each pattern solves one common job, such as encrypting data at rest, signing API
 
 <div class="grid cards" markdown>
 
-- **New to post-quantum migration?** Read [Start here](guide/index.md), then [Planning a migration](guide/migration.md).
+- **New to post-quantum cryptography?** Read [The quantum problem](guide/quantum-threat.md) for a plain-language explanation, and keep the [glossary](guide/glossary.md) handy.
+- **Ready to plan the work?** Read [Start here](guide/index.md), then [Planning a migration](guide/migration.md).
 - **Need code for one job?** Go to the [pattern list](patterns/index.md).
 - **Auditing a codebase?** Run the [checker](checker.md) to find quantum-vulnerable and weak cryptography.
 

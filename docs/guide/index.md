@@ -1,6 +1,6 @@
 # Start here
 
-This guide is for engineers who own services that use cryptography and need to move them to post-quantum algorithms. It assumes you know what TLS, a signature and an AEAD are, but not the new algorithms.
+This guide is for engineers who own services that use cryptography and need to move them to post-quantum algorithms. It assumes you know what TLS, a signature and an AEAD are, but not the new algorithms. If you want the background first, read [The quantum problem](quantum-threat.md), and look up any unfamiliar term in the [glossary](glossary.md).
 
 ## What a quantum computer breaks
 
@@ -14,7 +14,7 @@ The two halves of public-key cryptography have different deadlines:
 | When it matters | **Today**, for any data that must stay secret beyond the arrival of a quantum computer | When a quantum computer exists, except for anything that must stay trustworthy for years, such as CA roots and firmware signing keys |
 | Fix | ML-KEM, combined with X25519 in a hybrid | ML-DSA |
 
-So the order of work is: key exchange and encryption first, long-lived signing keys next, short-lived authentication last.
+So the order of work is: key exchange and encryption first, long-lived signing keys next, short-lived authentication last. [The quantum problem](quantum-threat.md) explains why in more detail.
 
 ## Where to start
 

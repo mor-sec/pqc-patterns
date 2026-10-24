@@ -1,0 +1,16 @@
+[package]
+name = "hash-01-digests-and-macs"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+aws-lc-rs = "1.18"
+base64 = "0.22"
+
+[dev-dependencies]
+hex = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

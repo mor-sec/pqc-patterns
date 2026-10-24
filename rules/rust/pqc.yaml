@@ -209,6 +209,7 @@ rules:
       (SHA-384 for CNSA 2.0), or SHA3-256.
     metadata:
       pattern: HASH-01
+      docs: patterns/hash-01-digests-and-macs/README.md
       cwe: "CWE-328: Use of Weak Hash"
       category: security
     pattern-either:

@@ -195,6 +195,7 @@ rules:
       (SHA-384 for CNSA 2.0), or SHA3-256.
     metadata:
       pattern: HASH-01
+      docs: patterns/hash-01-digests-and-macs/README.md
       cwe: "CWE-328: Use of Weak Hash"
       category: security
     patterns:
@@ -241,3 +242,38 @@ rules:
               - metavariable-regex:
                   metavariable: $V
                   regex: (?i).*(token|session|secret|nonce|salt|otp|password|passwd|apikey|api_key|csrf|key).*
+
+  - id: pqc-mac-compare
+    languages: [java]
+    severity: ERROR
+    message: >-
+      A MAC compared with Arrays.equals leaks, through timing, how many leading
+      bytes matched, which lets an attacker forge a tag byte by byte. Use
+      MessageDigest.isEqual.
+    metadata:
+      pattern: HASH-01
+      docs: patterns/hash-01-digests-and-macs/README.md
+      cwe: "CWE-208: Observable Timing Discrepancy"
+      category: security
+    patterns:
+      - pattern-either:
+          - pattern-inside: |
+              $M = javax.crypto.Mac.getInstance(...);
+              ...
+          - pattern-inside: |
+              javax.crypto.Mac $M = javax.crypto.Mac.getInstance(...);
+              ...
+      - pattern-either:
+          - pattern: java.util.Arrays.equals($M.doFinal(...), $T)
+          - pattern: java.util.Arrays.equals($T, $M.doFinal(...))
+          - patterns:
+              - pattern-either:
+                  - pattern-inside: |
+                      $E = $M.doFinal(...);
+                      ...
+                  - pattern-inside: |
+                      byte[] $E = $M.doFinal(...);
+                      ...
+              - pattern-either:
+                  - pattern: java.util.Arrays.equals($E, $T)
+                  - pattern: java.util.Arrays.equals($T, $E)

@@ -6,6 +6,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import javax.crypto.Cipher;
 import javax.crypto.KeyAgreement;
 import javax.crypto.KeyGenerator;
+import javax.crypto.Mac;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
@@ -138,6 +139,20 @@ class Fixtures {
     MessageDigest.getInstance("SHA-1");
     // ok: pqc-hash-weak
     MessageDigest.getInstance("SHA-256");
+  }
+
+  boolean macs(byte[] key, byte[] msg, byte[] got) throws Exception {
+    Mac m = Mac.getInstance("HmacSHA384");
+    m.init(new javax.crypto.spec.SecretKeySpec(key, "HmacSHA384"));
+    // ruleid: pqc-mac-compare
+    boolean a = java.util.Arrays.equals(m.doFinal(msg), got);
+    byte[] want = m.doFinal(msg);
+    // ruleid: pqc-mac-compare
+    boolean b = java.util.Arrays.equals(got, want);
+    // ok: pqc-mac-compare
+    boolean c = java.util.Arrays.equals(msg, got);
+    // ok: pqc-mac-compare
+    return a || b || c || MessageDigest.isEqual(want, got);
   }
 }
 

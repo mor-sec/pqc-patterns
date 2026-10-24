@@ -1,12 +1,14 @@
 package fixtures
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/ecdh"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
+	"crypto/hmac"
 	"crypto/hpke"
 	"crypto/md5"
 	"crypto/mldsa"
@@ -136,4 +138,24 @@ func hashes(b []byte) {
 	sha1.New()
 	// ok: pqc-hash-weak
 	sha256.Sum256(b)
+}
+
+func macs(key, msg, got []byte) bool {
+	m := hmac.New(sha256.New, key)
+	m.Write(msg)
+	// ruleid: pqc-mac-compare
+	if bytes.Equal(m.Sum(nil), got) {
+		return true
+	}
+	want := m.Sum(nil)
+	// ruleid: pqc-mac-compare
+	if bytes.Equal(got, want) {
+		return true
+	}
+	// ok: pqc-mac-compare
+	if bytes.Equal(msg, got) {
+		return true
+	}
+	// ok: pqc-mac-compare
+	return hmac.Equal(want, got)
 }

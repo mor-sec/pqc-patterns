@@ -19,6 +19,7 @@ Read it as a website, with a migration guide, at **[mor-sec.github.io/pqc-patter
 
 | ID | Pattern | Go | Rust | Java |
 | --- | --- | --- | --- | --- |
+| [HASH-01](patterns/hash-01-digests-and-macs/) | Content digests and MACs | stdlib | aws-lc-rs | JDK |
 | [HASH-02](patterns/hash-02-hkdf-key-derivation/) | Deriving purpose-bound keys with HKDF | stdlib | aws-lc-rs | Bouncy Castle |
 | [HASH-03](patterns/hash-03-password-hashing/) | Storing passwords with Argon2id | x/crypto | RustCrypto argon2 | Bouncy Castle |
 | [KX-01](patterns/kx-01-hybrid-tls/) | Hybrid post-quantum TLS 1.3 | stdlib | rustls + aws-lc-rs | Bouncy Castle JSSE |
@@ -29,6 +30,7 @@ Read it as a website, with a migration guide, at **[mor-sec.github.io/pqc-patter
 | [SIG-01](patterns/sig-01-mldsa-api-signing/) | Signing API requests with ML-DSA | stdlib | RustCrypto ml-dsa | Bouncy Castle |
 | [SIG-02](patterns/sig-02-artifact-signing/) | Signing release artifacts with ML-DSA | stdlib | RustCrypto ml-dsa | Bouncy Castle |
 | [SYM-01](patterns/sym-01-aead-at-rest/) | Authenticated encryption at rest | stdlib | aws-lc-rs | JDK |
+| [SYM-03](patterns/sym-03-streaming-encryption/) | Streaming and large-file encryption | stdlib | aws-lc-rs | JDK + Bouncy Castle |
 
 The full planned catalog of 24 patterns is tracked in the project plan.
 

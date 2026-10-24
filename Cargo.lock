@@ -415,6 +415,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e4eba85ea1d0a966a983acd07deee566e67395d2d96b6fb39e62b5a833f1eb0b"
 
 [[package]]
+name = "hash-01-digests-and-macs"
+version = "0.1.0"
+dependencies = [
+ "aws-lc-rs",
+ "base64",
+ "hex",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "hash-02-hkdf-key-derivation"
 version = "0.1.0"
 dependencies = [
@@ -1408,6 +1419,16 @@ checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 
 [[package]]
 name = "sym-01-aead-at-rest"
+version = "0.1.0"
+dependencies = [
+ "aws-lc-rs",
+ "hex",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "sym-03-streaming-encryption"
 version = "0.1.0"
 dependencies = [
  "aws-lc-rs",

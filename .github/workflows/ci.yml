@@ -20,10 +20,12 @@ jobs:
           - sig-02-artifact-signing
           - kx-03-hpke-hybrid-envelope
           - kx-01-hybrid-tls
+          - hash-01-digests-and-macs
           - hash-02-hkdf-key-derivation
           - hash-03-password-hashing
           - kx-02-hybrid-mtls
           - sess-02-mldsa-signed-tokens
+          - sym-03-streaming-encryption
     defaults:
       run:
         working-directory: patterns/${{ matrix.pattern }}/go

@@ -100,7 +100,8 @@ rules:
     severity: ERROR
     message: >-
       Unauthenticated cipher mode: ciphertexts can be modified without detection.
-      Use AES-256-GCM with associated data (pattern SYM-01).
+      Use AES-256-GCM with associated data (pattern SYM-01),
+      or segmented AES-256-GCM for large files and streams (pattern SYM-03).
     metadata:
       pattern: SYM-01
       docs: patterns/sym-01-aead-at-rest/README.md
@@ -274,6 +275,7 @@ rules:
       (SHA-384 for CNSA 2.0), or SHA-3.
     metadata:
       pattern: HASH-01
+      docs: patterns/hash-01-digests-and-macs/README.md
       cwe: "CWE-328: Use of Weak Hash"
       category: security
     pattern-either:
@@ -281,3 +283,30 @@ rules:
       - pattern: md5.Sum(...)
       - pattern: sha1.New()
       - pattern: sha1.Sum(...)
+
+  - id: pqc-mac-compare
+    languages: [go]
+    severity: ERROR
+    message: >-
+      A MAC compared with bytes.Equal leaks, through timing, how many leading
+      bytes matched, which lets an attacker forge a tag byte by byte. Use
+      hmac.Equal.
+    metadata:
+      pattern: HASH-01
+      docs: patterns/hash-01-digests-and-macs/README.md
+      cwe: "CWE-208: Observable Timing Discrepancy"
+      category: security
+    patterns:
+      - pattern-inside: |
+          $M := hmac.New(...)
+          ...
+      - pattern-either:
+          - pattern: bytes.Equal($M.Sum(nil), $T)
+          - pattern: bytes.Equal($T, $M.Sum(nil))
+          - patterns:
+              - pattern-inside: |
+                  $E := $M.Sum(nil)
+                  ...
+              - pattern-either:
+                  - pattern: bytes.Equal($E, $T)
+                  - pattern: bytes.Equal($T, $E)

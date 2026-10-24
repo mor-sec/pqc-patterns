@@ -6,11 +6,13 @@ members = [
   "patterns/sig-02-artifact-signing/rust",
   "patterns/kx-03-hpke-hybrid-envelope/rust",
   "patterns/kx-01-hybrid-tls/rust",
+  "patterns/hash-01-digests-and-macs/rust",
   "patterns/hash-02-hkdf-key-derivation/rust",
   "patterns/hash-03-password-hashing/rust",
   "patterns/pki-01-mldsa-certificates/rust",
   "patterns/kx-02-hybrid-mtls/rust",
   "patterns/sess-02-mldsa-signed-tokens/rust",
+  "patterns/sym-03-streaming-encryption/rust",
 ]
 
 [workspace.package]

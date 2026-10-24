@@ -205,6 +205,45 @@ rules:
           metavariable: $ALG
           regex: (?i)^(MD2|MD4|MD5|SHA|SHA-?1)$
 
+  - id: pqc-token-weak-random
+    languages: [java]
+    severity: ERROR
+    message: >-
+      A token, key, nonce or salt is generated with java.util.Random, Math.random,
+      ThreadLocalRandom or RandomStringUtils.random*, which are predictable. Use
+      SecureRandom, for example 32 bytes in base64url for session tokens (pattern SESS-01).
+    metadata:
+      pattern: SESS-01
+      docs: patterns/sess-01-opaque-session-tokens/README.md
+      cwe: "CWE-338: Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG)"
+      category: security
+    patterns:
+      - pattern-either:
+          - pattern: new java.util.Random(...)
+          - pattern: Math.random()
+          - pattern: java.util.concurrent.ThreadLocalRandom.current()
+          - pattern: (java.util.Random $R).$G(...)
+          - patterns:
+              - pattern: org.apache.commons.lang3.RandomStringUtils.$F(...)
+              - metavariable-regex:
+                  metavariable: $F
+                  regex: ^(random\w*|insecure)$
+      # Only where the value is clearly a secret, so jitter and shuffles stay quiet.
+      - pattern-either:
+          - patterns:
+              - pattern-inside: |
+                  $T $M(...) { ... }
+              - metavariable-regex:
+                  metavariable: $M
+                  regex: (?i).*(token|session|secret|nonce|salt|otp|password|passwd|apikey|api_key|csrf).*
+          - patterns:
+              - pattern-either:
+                  - pattern-inside: $TY $V = <... $E ...>;
+                  - pattern-inside: $V = <... $E ...>;
+              - metavariable-regex:
+                  metavariable: $V
+                  regex: (?i).*(token|session|secret|nonce|salt|otp|password|passwd|apikey|api_key|csrf|key).*
+
   - id: pqc-mac-compare
     languages: [java]
     severity: ERROR

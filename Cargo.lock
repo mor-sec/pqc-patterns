@@ -1321,6 +1321,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "sess-01-opaque-session-tokens"
+version = "0.1.0"
+dependencies = [
+ "aws-lc-rs",
+ "base64",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "sess-02-mldsa-signed-tokens"
 version = "0.1.0"
 dependencies = [

@@ -1415,6 +1415,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "sym-03-streaming-encryption"
+version = "0.1.0"
+dependencies = [
+ "aws-lc-rs",
+ "hex",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "syn"
 version = "2.0.119"
 source = "registry+https://github.com/rust-lang/crates.io-index"
